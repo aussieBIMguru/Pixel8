@@ -1,0 +1,285 @@
+{
+  "_comment": "Map events ('?' tiles). Each option may cost gold/torch, may roll a check (best hero: d20 + atk|dex|spell|none vs dc) and applies 'success' or 'failure' outcomes. Outcome types: gold, luck, torch, xp, heal (fraction), maxHp, damage (dice, target random|party; never downs a hero), item (id), upgradeRandom, addCard, removeCard. Names and text are original.",
+  "events": [
+    {
+      "id": "shrine",
+      "title": "Cracked Shrine",
+      "text": "A hairline-cracked shrine hums softly. Old coins glint in its bowl.",
+      "options": [
+        {
+          "label": "Pray",
+          "text": "Spell check DC 12",
+          "check": {
+            "mod": "spell",
+            "dc": 12
+          },
+          "success": [
+            {
+              "type": "luck",
+              "amount": "1"
+            },
+            {
+              "type": "heal",
+              "amount": "0.2"
+            }
+          ],
+          "failure": [
+            {
+              "type": "damage",
+              "dice": "1d6",
+              "target": "random"
+            }
+          ]
+        },
+        {
+          "label": "Take the coins",
+          "text": "+20 gold, but the shrine notices",
+          "success": [
+            {
+              "type": "gold",
+              "amount": "20"
+            },
+            {
+              "type": "luck",
+              "amount": "-1"
+            }
+          ]
+        },
+        {
+          "label": "Leave",
+          "text": "Walk on"
+        }
+      ]
+    },
+    {
+      "id": "abandoned_camp",
+      "title": "Abandoned Camp",
+      "text": "Cold ashes, a torn pack and a tripwire someone forgot to take down.",
+      "options": [
+        {
+          "label": "Search the pack",
+          "text": "Dex check DC 11",
+          "check": {
+            "mod": "dex",
+            "dc": 11
+          },
+          "success": [
+            {
+              "type": "item",
+              "id": "potion_healing"
+            },
+            {
+              "type": "gold",
+              "amount": "10"
+            }
+          ],
+          "failure": [
+            {
+              "type": "damage",
+              "dice": "1d4",
+              "target": "party"
+            }
+          ]
+        },
+        {
+          "label": "Rest a moment",
+          "text": "-2 Torch, heal 15%",
+          "torch": 2,
+          "success": [
+            {
+              "type": "heal",
+              "amount": "0.15"
+            }
+          ]
+        },
+        {
+          "label": "Leave",
+          "text": "Walk on"
+        }
+      ]
+    },
+    {
+      "id": "library",
+      "title": "Mouldy Library",
+      "text": "Shelves of damp scrolls. Some of the margins hold clever notes.",
+      "options": [
+        {
+          "label": "Study",
+          "text": "-3 Torch: upgrade a random card",
+          "torch": 3,
+          "success": [
+            {
+              "type": "upgradeRandom"
+            }
+          ]
+        },
+        {
+          "label": "Burn scrolls for light",
+          "text": "+4 Torch",
+          "success": [
+            {
+              "type": "torch",
+              "amount": "4"
+            }
+          ]
+        },
+        {
+          "label": "Leave",
+          "text": "Walk on"
+        }
+      ]
+    },
+    {
+      "id": "gambler",
+      "title": "The Grinning Stranger",
+      "text": "A stranger shuffles three cups. 'Find the pebble, double your coin.'",
+      "options": [
+        {
+          "label": "Bet 15 gold",
+          "text": "Spell check DC 13 to spot the trick",
+          "gold": 15,
+          "check": {
+            "mod": "spell",
+            "dc": 13
+          },
+          "success": [
+            {
+              "type": "gold",
+              "amount": "35"
+            }
+          ],
+          "failure": []
+        },
+        {
+          "label": "Shake him down",
+          "text": "Attack check DC 14",
+          "check": {
+            "mod": "atk",
+            "dc": 14
+          },
+          "success": [
+            {
+              "type": "gold",
+              "amount": "15"
+            }
+          ],
+          "failure": [
+            {
+              "type": "damage",
+              "dice": "1d6",
+              "target": "random"
+            },
+            {
+              "type": "gold",
+              "amount": "-10"
+            }
+          ]
+        },
+        {
+          "label": "Leave",
+          "text": "Walk on"
+        }
+      ]
+    },
+    {
+      "id": "wishing_well",
+      "title": "Wishing Well",
+      "text": "A stone well. Something far below catches the light.",
+      "options": [
+        {
+          "label": "Toss a coin",
+          "text": "-5 gold: +1 Luck",
+          "gold": 5,
+          "success": [
+            {
+              "type": "luck",
+              "amount": "1"
+            }
+          ]
+        },
+        {
+          "label": "Drink",
+          "text": "Heal 25%",
+          "success": [
+            {
+              "type": "heal",
+              "amount": "0.25"
+            }
+          ]
+        },
+        {
+          "label": "Leave",
+          "text": "Walk on"
+        }
+      ]
+    },
+    {
+      "id": "hermit",
+      "title": "Hermit's Fire",
+      "text": "A hermit tends a small fire. 'Leave me a burden, take a lesson.'",
+      "options": [
+        {
+          "label": "Give up a card",
+          "text": "Remove a card, +10 XP",
+          "success": [
+            {
+              "type": "removeCard"
+            },
+            {
+              "type": "xp",
+              "amount": "10"
+            }
+          ]
+        },
+        {
+          "label": "Share a meal",
+          "text": "-10 gold: every hero +2 max HP",
+          "gold": 10,
+          "success": [
+            {
+              "type": "maxHp",
+              "amount": "2"
+            }
+          ]
+        },
+        {
+          "label": "Leave",
+          "text": "Walk on"
+        }
+      ]
+    },
+    {
+      "id": "wandering_bard",
+      "title": "Wandering Bard",
+      "text": "A bard offers to teach a verse for a few coins.",
+      "minDepth": 1,
+      "weight": 1,
+      "options": [
+        {
+          "label": "Pay 20 gold",
+          "text": "A new card for a random hero",
+          "gold": 20,
+          "success": [
+            {
+              "type": "addCard"
+            }
+          ]
+        },
+        {
+          "label": "Listen for free",
+          "text": "+5 XP",
+          "success": [
+            {
+              "type": "xp",
+              "amount": "5"
+            }
+          ]
+        },
+        {
+          "label": "Leave",
+          "text": "Walk on"
+        }
+      ]
+    }
+  ]
+}

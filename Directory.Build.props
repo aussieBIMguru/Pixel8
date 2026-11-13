@@ -1,0 +1,14 @@
+<Project>
+  <!--
+    Shared build settings for every project in the Pixel8 solution.
+    One place for the version: the assemblies, build\publish.ps1, the installer and the setup file name all read it.
+  -->
+  <PropertyGroup>
+    <Version>0.1.0</Version>
+    <Product>Pixel8</Product>
+    <Authors>Gavin Nicholls</Authors>
+    <Company>Gavin Nicholls</Company>
+    <Copyright>Copyright (c) 2026 Gavin Nicholls</Copyright>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+</Project>

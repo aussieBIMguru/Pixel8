@@ -1,0 +1,206 @@
+{
+  "_comment": "Creatures from the 5e SRD 5.1 (CC BY 4.0), stats as published; balance.json enemyHpMultiplier scales HP at spawn. saveMod is the DEX save. Tier 1 = normal, 2 = elite, 3 = boss. minDepth keeps an enemy out of earlier Depths. 'big': true marks a heavy attack (bolt icon) that triggers a timed reaction when it hits. 'fx' on an attack intent picks its hit effect (slash, smash, stab, bite, arrow).",
+  "enemies": [
+    {
+      "id": "kobold",
+      "name": "Kobold",
+      "hp": 5,
+      "ac": 12,
+      "initMod": 2,
+      "saveMod": 2,
+      "gold": 2,
+      "tier": 1,
+      "intents": [
+        {
+          "name": "Dagger",
+          "attackBonus": 4,
+          "damage": "1d4+2",
+          "weight": 2,
+          "fx": "stab"
+        },
+        {
+          "name": "Sling",
+          "attackBonus": 4,
+          "damage": "1d4+2",
+          "weight": 1,
+          "fx": "arrow"
+        }
+      ]
+    },
+    {
+      "id": "giant_rat",
+      "name": "Giant Rat",
+      "hp": 7,
+      "ac": 12,
+      "initMod": 2,
+      "saveMod": 2,
+      "gold": 1,
+      "tier": 1,
+      "intents": [
+        {
+          "name": "Bite",
+          "attackBonus": 4,
+          "damage": "1d4+2",
+          "fx": "bite"
+        }
+      ]
+    },
+    {
+      "id": "goblin",
+      "name": "Goblin",
+      "hp": 7,
+      "ac": 15,
+      "initMod": 2,
+      "saveMod": 2,
+      "gold": 3,
+      "tier": 1,
+      "intents": [
+        {
+          "name": "Scimitar",
+          "attackBonus": 4,
+          "damage": "1d6+2",
+          "weight": 3,
+          "fx": "slash"
+        },
+        {
+          "name": "Shortbow",
+          "attackBonus": 4,
+          "damage": "1d6+2",
+          "weight": 2,
+          "fx": "arrow"
+        },
+        {
+          "name": "Hide",
+          "kind": "Guard",
+          "block": 4,
+          "weight": 1
+        }
+      ]
+    },
+    {
+      "id": "skeleton",
+      "name": "Skeleton",
+      "hp": 13,
+      "ac": 13,
+      "initMod": 2,
+      "saveMod": 2,
+      "gold": 3,
+      "tier": 1,
+      "intents": [
+        {
+          "name": "Shortsword",
+          "attackBonus": 4,
+          "damage": "1d6+2",
+          "weight": 2,
+          "fx": "slash"
+        },
+        {
+          "name": "Shortbow",
+          "attackBonus": 4,
+          "damage": "1d6+2",
+          "weight": 1,
+          "fx": "arrow"
+        }
+      ]
+    },
+    {
+      "id": "wolf",
+      "name": "Wolf",
+      "hp": 11,
+      "ac": 13,
+      "initMod": 2,
+      "saveMod": 2,
+      "gold": 0,
+      "tier": 1,
+      "intents": [
+        {
+          "name": "Bite",
+          "attackBonus": 4,
+          "damage": "2d4+2",
+          "fx": "bite"
+        }
+      ]
+    },
+    {
+      "id": "orc",
+      "name": "Orc",
+      "hp": 15,
+      "ac": 13,
+      "initMod": 1,
+      "saveMod": 1,
+      "gold": 5,
+      "tier": 1,
+      "intents": [
+        {
+          "name": "Greataxe",
+          "attackBonus": 5,
+          "damage": "1d12+3",
+          "weight": 2,
+          "big": true,
+          "fx": "smash"
+        },
+        {
+          "name": "Javelin",
+          "attackBonus": 5,
+          "damage": "1d6+3",
+          "weight": 1,
+          "fx": "arrow"
+        }
+      ],
+      "minDepth": 2
+    },
+    {
+      "id": "bugbear",
+      "name": "Bugbear",
+      "hp": 27,
+      "ac": 16,
+      "initMod": 2,
+      "saveMod": 2,
+      "gold": 12,
+      "tier": 2,
+      "intents": [
+        {
+          "name": "Morningstar",
+          "attackBonus": 4,
+          "damage": "2d8+2",
+          "weight": 3,
+          "big": true,
+          "fx": "smash"
+        },
+        {
+          "name": "Brace",
+          "kind": "Guard",
+          "block": 6,
+          "weight": 1
+        }
+      ]
+    },
+    {
+      "id": "ogre",
+      "name": "Ogre",
+      "hp": 59,
+      "ac": 11,
+      "initMod": -1,
+      "saveMod": -1,
+      "gold": 30,
+      "tier": 3,
+      "intents": [
+        {
+          "name": "Greatclub",
+          "attackBonus": 6,
+          "damage": "2d8+4",
+          "weight": 3,
+          "big": true,
+          "fx": "smash"
+        },
+        {
+          "name": "Javelin",
+          "attackBonus": 6,
+          "damage": "2d6+4",
+          "weight": 1,
+          "fx": "arrow"
+        }
+      ]
+    }
+  ]
+}

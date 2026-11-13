@@ -1,0 +1,79 @@
+{
+  "_comment": "Tunable numbers. Every value is optional; see BalanceDef / DifficultyDef for defaults. Difficulty presets apply on top of the base numbers. Party XP: enemies give xpByTier[tier] (or their own 'xp'); levelXp[i] is the total XP for level i+1; each level, every living hero picks +levelUpHp max HP, a card upgrade or a card removal (never below minDeckSize).",
+  "maxHand": 5,
+  "secondWindDraw": 1,
+  "startingGold": 0,
+  "startingLuck": 3,
+  "luckRerollsPerFight": 1,
+  "fleeTorchCost": 2,
+  "fleeGoldCost": 10,
+  "skipDraftGold": 15,
+  "rarityWeights": {
+    "Common": 70,
+    "Uncommon": 25,
+    "Rare": 5,
+    "Legendary": 0
+  },
+  "heroesActFirst": true,
+  "enemyHpMultiplier": 1.5,
+  "normalGroupMin": 2,
+  "normalGroupMax": 3,
+  "campfireTorch": 6,
+  "xpByTier": [
+    0,
+    4,
+    12,
+    30
+  ],
+  "levelXp": [
+    0,
+    35,
+    85,
+    155,
+    245,
+    355,
+    490,
+    650
+  ],
+  "levelUpHp": 4,
+  "minDeckSize": 4,
+  "prices": {
+    "_comment": "Merchant. Cards by rarity; removal and upgrade are once per visit; itemStock = copies of each item.",
+    "cards": {
+      "Common": 25,
+      "Uncommon": 40,
+      "Rare": 65,
+      "Legendary": 100
+    },
+    "removeCard": 35,
+    "upgradeCard": 40,
+    "itemStock": 2
+  },
+  "defaultDifficulty": "normal",
+  "difficulties": {
+    "easy": {
+      "name": "Easy",
+      "description": "Tougher heroes, softer foes, heal after each win.",
+      "heroHpMultiplier": 1.15,
+      "enemyHpMultiplier": 0.9,
+      "enemyDamageMultiplier": 0.85,
+      "enemyAttackBonus": 0,
+      "groupSizeBonus": 0,
+      "victoryHealFraction": 0.1,
+      "timingWindow": 0.3
+    },
+    "normal": {
+      "name": "Normal",
+      "description": "The intended challenge.",
+      "timingWindow": 0.2
+    },
+    "hard": {
+      "name": "Hard",
+      "description": "Foes are tougher, hit harder and more often.",
+      "enemyHpMultiplier": 1.1,
+      "enemyDamageMultiplier": 1.1,
+      "enemyAttackBonus": 1,
+      "timingWindow": 0.14
+    }
+  }
+}

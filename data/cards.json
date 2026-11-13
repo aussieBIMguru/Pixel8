@@ -1,0 +1,522 @@
+{
+  "_comment": "Card data, loaded by ContentDb. 'when': always | onHit | onCrit | onMiss. 'target': target | self | party | allEnemies | adjacent (no formation: a random other enemy). classId 'basic' = always-available actions. 'upgrade' (optional): text/effects that replace the base ones when a copy is upgraded (campfire or merchant); the card keeps its name with a '+'. WeaponDamage takes an optional 'bonus'. Class basic actions are classId 'basic' too, linked from heroes.json 'basicAction'; 'exhaust' on a basic = once per fight. 'spell': true makes an Attack roll the spell attack (spell DC - 8). 'short' labels small buttons. 'fx' picks the hit effect: slash, smash, stab, bite, arrow, bolt, fire, missile, radiant (cards without one use the hero's weaponFx or their damage type).",
+  "cards": [
+    {
+      "id": "basic.strike",
+      "name": "Strike",
+      "classId": "basic",
+      "speed": "Action",
+      "check": "Attack",
+      "rarity": "Common",
+      "text": "Attack with your weapon.",
+      "effects": [
+        {
+          "type": "WeaponDamage",
+          "when": "onHit"
+        }
+      ]
+    },
+    {
+      "id": "basic.guard",
+      "name": "Guard",
+      "classId": "basic",
+      "speed": "Action",
+      "check": "None",
+      "rarity": "Common",
+      "text": "Gain 5 Block.",
+      "effects": [
+        {
+          "type": "Block",
+          "args": {
+            "amount": "5"
+          }
+        }
+      ]
+    },
+    {
+      "id": "basic.second_wind",
+      "name": "Second Wind",
+      "short": "WIND",
+      "classId": "basic",
+      "speed": "Quick",
+      "check": "None",
+      "rarity": "Common",
+      "exhaust": true,
+      "text": "Fighter. Once per fight: heal 1d10+1.",
+      "effects": [
+        {
+          "type": "Heal",
+          "args": {
+            "dice": "1d10+1"
+          }
+        }
+      ]
+    },
+    {
+      "id": "basic.cunning",
+      "name": "Cunning Action",
+      "short": "CUNNING",
+      "classId": "basic",
+      "speed": "Quick",
+      "check": "None",
+      "rarity": "Common",
+      "text": "Rogue. Your next attack before your next turn has advantage.",
+      "effects": [
+        {
+          "type": "Apply",
+          "args": {
+            "cond": "Cunning",
+            "rounds": "1",
+            "target": "self"
+          }
+        }
+      ]
+    },
+    {
+      "id": "basic.fire_bolt",
+      "name": "Fire Bolt",
+      "short": "BOLT",
+      "classId": "basic",
+      "speed": "Action",
+      "check": "Attack",
+      "rarity": "Common",
+      "spell": true,
+      "text": "Wizard. Spell attack: 1d10 fire.",
+      "effects": [
+        {
+          "type": "Damage",
+          "when": "onHit",
+          "args": {
+            "dice": "1d10",
+            "type": "fire"
+          }
+        }
+      ],
+      "fx": "bolt"
+    },
+    {
+      "id": "basic.spare_the_dying",
+      "name": "Spare the Dying",
+      "short": "SPARE",
+      "classId": "basic",
+      "speed": "Quick",
+      "check": "None",
+      "rarity": "Common",
+      "text": "Cleric. A Downed ally gets up at 1 HP; anyone else gains 3 Block.",
+      "effects": [
+        {
+          "type": "Stabilize",
+          "args": {
+            "block": "3",
+            "target": "target"
+          }
+        }
+      ]
+    },
+    {
+      "id": "fighter.cleave",
+      "name": "Cleave",
+      "classId": "fighter",
+      "speed": "Action",
+      "check": "Attack",
+      "rarity": "Common",
+      "text": "Attack. On hit, also deal weapon damage to another enemy.",
+      "effects": [
+        {
+          "type": "WeaponDamage",
+          "when": "onHit"
+        },
+        {
+          "type": "WeaponDamage",
+          "when": "onHit",
+          "args": {
+            "target": "adjacent"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Attack with +2 damage. On hit, also deal weapon damage +2 to another enemy.",
+        "effects": [
+          {
+            "type": "WeaponDamage",
+            "when": "onHit",
+            "args": {
+              "bonus": "2"
+            }
+          },
+          {
+            "type": "WeaponDamage",
+            "when": "onHit",
+            "args": {
+              "bonus": "2",
+              "target": "adjacent"
+            }
+          }
+        ]
+      },
+      "fx": "slash"
+    },
+    {
+      "id": "fighter.shield_wall",
+      "name": "Shield Wall",
+      "classId": "fighter",
+      "speed": "Action",
+      "check": "None",
+      "rarity": "Common",
+      "text": "Gain 8 Block. Enemies must target you until your next turn.",
+      "effects": [
+        {
+          "type": "Block",
+          "args": {
+            "amount": "8",
+            "target": "self"
+          }
+        },
+        {
+          "type": "Apply",
+          "args": {
+            "cond": "Taunting",
+            "rounds": "1",
+            "target": "self"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Gain 12 Block. Enemies must target you until your next turn.",
+        "effects": [
+          {
+            "type": "Block",
+            "args": {
+              "amount": "12",
+              "target": "self"
+            }
+          },
+          {
+            "type": "Apply",
+            "args": {
+              "cond": "Taunting",
+              "rounds": "1",
+              "target": "self"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "rogue.sneak_attack",
+      "name": "Sneak Attack",
+      "classId": "rogue",
+      "speed": "Action",
+      "check": "Attack",
+      "rarity": "Common",
+      "text": "Attack. +2d6 if the target is Marked or Prone, or an ally hit it this round.",
+      "effects": [
+        {
+          "type": "WeaponDamage",
+          "when": "onHit"
+        },
+        {
+          "type": "BonusDamage",
+          "when": "onHit",
+          "args": {
+            "dice": "2d6",
+            "if": "target.Marked|target.Prone|allyHitThisRound"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Attack. +3d6 if the target is Marked or Prone, or an ally hit it this round.",
+        "effects": [
+          {
+            "type": "WeaponDamage",
+            "when": "onHit"
+          },
+          {
+            "type": "BonusDamage",
+            "when": "onHit",
+            "args": {
+              "dice": "3d6",
+              "if": "target.Marked|target.Prone|allyHitThisRound"
+            }
+          }
+        ]
+      },
+      "fx": "stab"
+    },
+    {
+      "id": "rogue.mark",
+      "name": "Mark Target",
+      "classId": "rogue",
+      "speed": "Quick",
+      "check": "None",
+      "rarity": "Common",
+      "text": "Mark an enemy for 2 rounds: attacks crit on 19-20 against it.",
+      "effects": [
+        {
+          "type": "Apply",
+          "args": {
+            "cond": "Marked",
+            "rounds": "2"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Mark an enemy for 3 rounds: attacks crit on 19-20 against it.",
+        "effects": [
+          {
+            "type": "Apply",
+            "args": {
+              "cond": "Marked",
+              "rounds": "3"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "wizard.burning_hands",
+      "name": "Burning Hands",
+      "classId": "wizard",
+      "speed": "Action",
+      "check": "Save",
+      "rarity": "Common",
+      "text": "All enemies make a DEX save vs your spell DC. Fail: 3d6 fire. Save: half.",
+      "effects": [
+        {
+          "type": "Damage",
+          "when": "onHit",
+          "args": {
+            "dice": "3d6",
+            "type": "fire",
+            "target": "allEnemies"
+          }
+        },
+        {
+          "type": "Damage",
+          "when": "onMiss",
+          "args": {
+            "dice": "3d6",
+            "type": "fire",
+            "half": "true",
+            "target": "allEnemies"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "All enemies make a DEX save vs your spell DC. Fail: 4d6 fire. Save: half.",
+        "effects": [
+          {
+            "type": "Damage",
+            "when": "onHit",
+            "args": {
+              "dice": "4d6",
+              "type": "fire",
+              "target": "allEnemies"
+            }
+          },
+          {
+            "type": "Damage",
+            "when": "onMiss",
+            "args": {
+              "dice": "4d6",
+              "type": "fire",
+              "half": "true",
+              "target": "allEnemies"
+            }
+          }
+        ]
+      },
+      "fx": "fire"
+    },
+    {
+      "id": "wizard.shield",
+      "name": "Shield",
+      "classId": "wizard",
+      "speed": "Reaction",
+      "check": "None",
+      "rarity": "Common",
+      "text": "Reaction: when you are hit, +5 AC against that attack.",
+      "effects": [
+        {
+          "type": "ModifyIncomingRoll",
+          "args": {
+            "targetDelta": "5"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Reaction: when you are hit, +5 AC against that attack and gain 4 Block.",
+        "effects": [
+          {
+            "type": "ModifyIncomingRoll",
+            "args": {
+              "targetDelta": "5"
+            }
+          },
+          {
+            "type": "Block",
+            "args": {
+              "amount": "4",
+              "target": "self"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "cleric.bless",
+      "name": "Bless",
+      "classId": "cleric",
+      "speed": "Action",
+      "check": "None",
+      "rarity": "Common",
+      "text": "The party is Blessed for 3 rounds (+1d4 to attacks and saves).",
+      "effects": [
+        {
+          "type": "Apply",
+          "args": {
+            "cond": "Blessed",
+            "rounds": "3",
+            "target": "party"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "The party is Blessed for 4 rounds (+1d4 to attacks and saves).",
+        "effects": [
+          {
+            "type": "Apply",
+            "args": {
+              "cond": "Blessed",
+              "rounds": "4",
+              "target": "party"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "neutral.loaded_die",
+      "name": "Loaded Die",
+      "classId": "neutral",
+      "speed": "Quick",
+      "check": "None",
+      "rarity": "Uncommon",
+      "exhaust": true,
+      "text": "The next d20 any hero rolls counts as a natural 15. Exhaust.",
+      "effects": [
+        {
+          "type": "FixNextDie",
+          "args": {
+            "value": "15"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "The next d20 any hero rolls counts as a natural 18. Exhaust.",
+        "effects": [
+          {
+            "type": "FixNextDie",
+            "args": {
+              "value": "18"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "wizard.magic_missile",
+      "name": "Magic Missile",
+      "classId": "wizard",
+      "speed": "Action",
+      "check": "None",
+      "rarity": "Common",
+      "text": "Three darts that never miss: 3d4+3 force.",
+      "effects": [
+        {
+          "type": "Damage",
+          "args": {
+            "dice": "3d4+3",
+            "type": "force"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Four darts that never miss: 4d4+4 force.",
+        "effects": [
+          {
+            "type": "Damage",
+            "args": {
+              "dice": "4d4+4",
+              "type": "force"
+            }
+          }
+        ]
+      },
+      "fx": "missile"
+    },
+    {
+      "id": "cleric.cure_wounds",
+      "name": "Cure Wounds",
+      "classId": "cleric",
+      "speed": "Action",
+      "check": "None",
+      "rarity": "Common",
+      "text": "An ally heals 1d8+3. Brings a Downed ally back up.",
+      "effects": [
+        {
+          "type": "Heal",
+          "args": {
+            "dice": "1d8+3",
+            "target": "target"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "An ally heals 2d8+3. Brings a Downed ally back up.",
+        "effects": [
+          {
+            "type": "Heal",
+            "args": {
+              "dice": "2d8+3",
+              "target": "target"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "cleric.sacred_flame",
+      "name": "Sacred Flame",
+      "classId": "cleric",
+      "speed": "Action",
+      "check": "Save",
+      "rarity": "Common",
+      "text": "An enemy makes a DEX save vs your spell DC. Fail: 1d8+2 radiant.",
+      "effects": [
+        {
+          "type": "Damage",
+          "when": "onHit",
+          "args": {
+            "dice": "1d8+2",
+            "type": "radiant"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "An enemy makes a DEX save vs your spell DC. Fail: 2d8+2 radiant.",
+        "effects": [
+          {
+            "type": "Damage",
+            "when": "onHit",
+            "args": {
+              "dice": "2d8+2",
+              "type": "radiant"
+            }
+          }
+        ]
+      },
+      "fx": "radiant"
+    }
+  ]
+}
