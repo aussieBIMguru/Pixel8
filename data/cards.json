@@ -1,0 +1,65 @@
+{
+  "_comment": "Starter card data (M1 wires this into ContentDb + EffectRegistry). 'when': always | onHit | onCrit | onMiss.",
+  "cards": [
+    {
+      "id": "fighter.cleave", "name": "Cleave", "classId": "fighter",
+      "speed": "Action", "check": "Attack", "rarity": "Common",
+      "text": "Attack. On hit, also deal weapon damage to an adjacent enemy.",
+      "effects": [
+        { "type": "WeaponDamage", "when": "onHit" },
+        { "type": "WeaponDamage", "when": "onHit", "args": { "target": "adjacent" } }
+      ]
+    },
+    {
+      "id": "fighter.shield_wall", "name": "Shield Wall", "classId": "fighter",
+      "speed": "Action", "check": "None", "rarity": "Common",
+      "text": "Gain 8 Block. Enemies must target you this round.",
+      "effects": [
+        { "type": "Block", "args": { "amount": "8" } },
+        { "type": "Apply", "args": { "cond": "Taunting", "rounds": "1" } }
+      ]
+    },
+    {
+      "id": "rogue.sneak_attack", "name": "Sneak Attack", "classId": "rogue",
+      "speed": "Action", "check": "Attack", "rarity": "Common",
+      "text": "Attack. +2d6 if the target is Marked or Prone, or an ally hit it this round.",
+      "effects": [
+        { "type": "WeaponDamage", "when": "onHit" },
+        { "type": "BonusDamage", "when": "onHit", "args": { "dice": "2d6", "if": "target.Marked|target.Prone|allyHitThisRound" } }
+      ]
+    },
+    {
+      "id": "rogue.mark", "name": "Mark Target", "classId": "rogue",
+      "speed": "Quick", "check": "None", "rarity": "Common",
+      "text": "Mark an enemy for 2 rounds: attacks crit on 19-20 against it.",
+      "effects": [ { "type": "Apply", "args": { "cond": "Marked", "rounds": "2" } } ]
+    },
+    {
+      "id": "wizard.burning_hands", "name": "Burning Hands", "classId": "wizard",
+      "speed": "Action", "check": "Save", "rarity": "Common",
+      "text": "All enemies make a DEX save vs your spell DC. Fail: 3d6 fire. Save: half.",
+      "effects": [
+        { "type": "Damage", "when": "onHit", "args": { "dice": "3d6", "type": "fire", "target": "allEnemies" } },
+        { "type": "Damage", "when": "onMiss", "args": { "dice": "3d6", "type": "fire", "half": "true", "target": "allEnemies" } }
+      ]
+    },
+    {
+      "id": "wizard.shield", "name": "Shield", "classId": "wizard",
+      "speed": "Reaction", "check": "None", "rarity": "Common",
+      "text": "Reaction: when you are hit, +5 AC against that attack.",
+      "effects": [ { "type": "ModifyIncomingRoll", "args": { "targetDelta": "5" } } ]
+    },
+    {
+      "id": "cleric.bless", "name": "Bless", "classId": "cleric",
+      "speed": "Action", "check": "None", "rarity": "Common",
+      "text": "The party is Blessed for 3 rounds (+1d4 to attacks and saves).",
+      "effects": [ { "type": "Apply", "args": { "cond": "Blessed", "rounds": "3", "target": "party" } } ]
+    },
+    {
+      "id": "neutral.loaded_die", "name": "Loaded Die", "classId": "neutral",
+      "speed": "Quick", "check": "None", "rarity": "Uncommon", "exhaust": true,
+      "text": "The next d20 any hero rolls counts as a natural 15. Exhaust.",
+      "effects": [ { "type": "FixNextDie", "args": { "value": "15" } } ]
+    }
+  ]
+}
