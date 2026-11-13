@@ -15,6 +15,8 @@ public sealed record DungeonParams
     public double DeadEndTreasureChance { get; init; } = 0.7;
     public int MinElites { get; init; } = 1;
     public int MaxElites { get; init; } = 2;
+    /// <summary>Place a merchant tile (shop mode "on map"). Off when the shop lives at campfires or is always open.</summary>
+    public bool Merchant { get; init; } = true;
 
     /// <summary>Weights for ordinary rooms that aren't otherwise forced.</summary>
     public IReadOnlyList<(TileKind Item, int Weight)> RoomTable { get; init; } = new[]
@@ -191,12 +193,18 @@ public static class DungeonGenerator
         }
     }
 
+    /// <summary>
+    /// One merchant on every Depth (session 6: Depth 1 had none, so the shop was never found), preferably off
+    /// the critical path and at least 3 rooms in. Its icon shows from 2 rooms away, like campfires.
+    /// </summary>
     private static void PlaceMerchant(DungeonGrid g, HashSet<Tile> fixedTiles, DungeonParams p, Rng rng)
     {
-        if (p.Depth < 2) return;
+        if (!p.Merchant) return;
         var options = g.Rooms
             .Where(t => !fixedTiles.Contains(t) && !g.CriticalPath.Contains(t) && t.Distance >= 3)
             .ToList();
+        if (options.Count == 0)
+            options = g.Rooms.Where(t => !fixedTiles.Contains(t) && t.Distance >= 2).ToList();
         if (options.Count == 0) return;
 
         var m = rng.Pick(options);

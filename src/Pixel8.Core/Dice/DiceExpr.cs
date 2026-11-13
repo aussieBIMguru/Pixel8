@@ -28,11 +28,19 @@ public readonly record struct DiceExpr(int Count, int Sides, int Bonus)
     }
 
     /// <summary>Rolls the expression. A critical doubles the dice, not the flat bonus (5e rule).</summary>
-    public int Roll(Rng rng, bool critical = false)
+    public int Roll(Rng rng, bool critical = false) => Roll(rng, critical, out _);
+
+    /// <summary>Same as <see cref="Roll(Rng, bool)"/> (identical RNG use), but also returns each die face for the roll strip.</summary>
+    public int Roll(Rng rng, bool critical, out int[] faces)
     {
         int dice = critical ? Count * 2 : Count;
+        faces = new int[dice];
         int total = Bonus;
-        for (int i = 0; i < dice; i++) total += rng.Roll(Sides);
+        for (int i = 0; i < dice; i++)
+        {
+            faces[i] = rng.Roll(Sides);
+            total += faces[i];
+        }
         return Math.Max(0, total);
     }
 

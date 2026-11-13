@@ -4,14 +4,16 @@ using Microsoft.Xna.Framework.Graphics;
 namespace Pixel8.Desktop.Rendering;
 
 /// <summary>
-/// Everything is drawn into a fixed 320×180 render target, then blown up by the largest
-/// whole-number scale that fits the window (×4 at 720p, ×6 at 1080p, ×8 at 1440p) with
+/// Everything is drawn into a fixed 256×144 render target (32×18 tiles of 8×8), then blown up by the
+/// largest whole-number scale that fits the window (×5 at 720p, ×7 at 1080p, ×10 at 1440p) with
 /// point sampling, so pixels stay perfectly square and crisp. Any remainder is letterboxed.
 /// </summary>
 public sealed class PixelCanvas : IDisposable
 {
-    public const int Width = 320;
-    public const int Height = 180;
+    public const int Width = 256;
+    public const int Height = 144;
+    /// <summary>Everything is built from 8×8 tiles.</summary>
+    public const int Tile = 8;
 
     private readonly GraphicsDevice _device;
     private readonly RenderTarget2D _target;

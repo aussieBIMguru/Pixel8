@@ -1,0 +1,85 @@
+{
+  "_comment": "MVP classes. Attack/AC follow 5e level 1 (SRD 5.1); HP is about 2x level 1 so a bad round can't drop a hero before they act (balanced 2026-11-13). Basic Strike/Guard are always available and are not in the deck. basicAction: the class's always-available extra (cards.json, classId 'basic'). weaponFx: hit effect for Strike and weapon damage.",
+  "heroes": [
+    {
+      "id": "fighter",
+      "name": "Fighter",
+      "hp": 26,
+      "ac": 16,
+      "attackMod": 5,
+      "weapon": "1d8+3",
+      "initMod": 1,
+      "spellDc": 10,
+      "startingDeck": [
+        "fighter.cleave",
+        "fighter.cleave",
+        "fighter.cleave",
+        "fighter.shield_wall",
+        "fighter.shield_wall",
+        "fighter.shield_wall"
+      ],
+      "basicAction": "basic.second_wind",
+      "weaponFx": "slash"
+    },
+    {
+      "id": "rogue",
+      "name": "Rogue",
+      "hp": 20,
+      "ac": 14,
+      "attackMod": 5,
+      "weapon": "1d6+3",
+      "initMod": 3,
+      "spellDc": 10,
+      "startingDeck": [
+        "rogue.sneak_attack",
+        "rogue.sneak_attack",
+        "rogue.sneak_attack",
+        "rogue.mark",
+        "rogue.mark",
+        "rogue.mark"
+      ],
+      "basicAction": "basic.cunning",
+      "weaponFx": "stab"
+    },
+    {
+      "id": "wizard",
+      "name": "Wizard",
+      "hp": 16,
+      "ac": 12,
+      "attackMod": 2,
+      "weapon": "1d6",
+      "initMod": 2,
+      "spellDc": 13,
+      "startingDeck": [
+        "wizard.burning_hands",
+        "wizard.burning_hands",
+        "wizard.magic_missile",
+        "wizard.magic_missile",
+        "wizard.shield",
+        "wizard.shield"
+      ],
+      "basicAction": "basic.fire_bolt",
+      "weaponFx": "smash"
+    },
+    {
+      "id": "cleric",
+      "name": "Cleric",
+      "hp": 20,
+      "ac": 16,
+      "attackMod": 4,
+      "weapon": "1d6+2",
+      "initMod": 0,
+      "spellDc": 13,
+      "startingDeck": [
+        "cleric.bless",
+        "cleric.bless",
+        "cleric.cure_wounds",
+        "cleric.cure_wounds",
+        "cleric.sacred_flame",
+        "cleric.sacred_flame"
+      ],
+      "basicAction": "basic.spare_the_dying",
+      "weaponFx": "smash"
+    }
+  ]
+}

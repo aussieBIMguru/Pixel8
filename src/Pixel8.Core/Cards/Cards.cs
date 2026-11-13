@@ -15,6 +15,12 @@ public enum CheckKind { None, Attack, Save, Skill }
 /// </summary>
 public sealed record EffectDef(string Type, string When = "always", Dictionary<string, string>? Args = null);
 
+/// <summary>
+/// The "upgrade" block of a card in cards.json: what changes when a copy is upgraded (campfire or merchant).
+/// Anything left out keeps the base card's value. The upgraded copy keeps the base name and shows a "+".
+/// </summary>
+public sealed record CardUpgradeDef(string? Text = null, IReadOnlyList<EffectDef>? Effects = null);
+
 /// <summary>Immutable card data. Lives in data/cards.json.</summary>
 public sealed record CardDef(
     string Id,
@@ -25,25 +31,53 @@ public sealed record CardDef(
     Rarity Rarity,
     string Text,
     IReadOnlyList<EffectDef> Effects,
-    bool Exhaust = false);
+    bool Exhaust = false,
+    CardUpgradeDef? Upgrade = null,
+    bool Spell = false,
+    string? Short = null,
+    string? Fx = null)
+{
+    // Fx: the hit effect the screen draws (slash, stab, fire, missile, radiant, bolt, ...). See ContentDb.KnownFx.
+    // Spell: an Attack card rolls the hero's spell attack (SpellDc − 8) instead of their weapon attack.
+    // Short: a label of up to 6 characters for small buttons (class basic actions).
+
+    public bool CanUpgrade => Upgrade is not null;
+
+    /// <summary>The card as it plays once upgraded (the same card if it has no upgrade block).</summary>
+    public CardDef Upgraded() => Upgrade is null
+        ? this
+        : this with { Text = Upgrade.Text ?? Text, Effects = Upgrade.Effects ?? Effects, Upgrade = null };
+}
 
 /// <summary>A specific copy of a card in a hero's deck (can be upgraded independently).</summary>
 public sealed class CardInstance
 {
     private static int _nextUid;
+    private CardDef? _upgradedDef;
 
     public CardInstance(CardDef def, bool upgraded = false)
     {
-        Def = def;
+        BaseDef = def;
         Upgraded = upgraded;
         Uid = Interlocked.Increment(ref _nextUid);
     }
 
     public int Uid { get; }
-    public CardDef Def { get; }
+
+    /// <summary>The card as printed in cards.json.</summary>
+    public CardDef BaseDef { get; }
+
+    /// <summary>The card as it plays: the upgraded version once <see cref="Upgraded"/> is set.</summary>
+    public CardDef Def => Upgraded && BaseDef.Upgrade is not null ? (_upgradedDef ??= BaseDef.Upgraded()) : BaseDef;
+
     public bool Upgraded { get; set; }
 
-    public override string ToString() => Upgraded ? Def.Name + "+" : Def.Name;
+    /// <summary>Not yet upgraded, and the card has an upgrade block.</summary>
+    public bool CanUpgrade => !Upgraded && BaseDef.CanUpgrade;
+
+    public string DisplayName => Upgraded ? BaseDef.Name + "+" : BaseDef.Name;
+
+    public override string ToString() => DisplayName;
 }
 
 /// <summary>
@@ -71,6 +105,19 @@ public sealed class HeroDeck
     public IReadOnlyList<CardInstance> Hand => _hand;
     public IReadOnlyList<CardInstance> Discard => _discard;
     public IReadOnlyList<CardInstance> Exhausted => _exhausted;
+
+    /// <summary>Replaces all four piles (loading a saved run). Order is kept: the last card of the draw pile is drawn next.</summary>
+    internal void Restore(IEnumerable<CardInstance> hand, IEnumerable<CardInstance> draw,
+        IEnumerable<CardInstance> discard, IEnumerable<CardInstance> exhausted)
+    {
+        _hand.Clear(); _hand.AddRange(hand);
+        _draw.Clear(); _draw.AddRange(draw);
+        _discard.Clear(); _discard.AddRange(discard);
+        _exhausted.Clear(); _exhausted.AddRange(exhausted);
+    }
+
+    /// <summary>Every card the hero owns that isn't exhausted: hand, then draw pile, then discard.</summary>
+    public IEnumerable<CardInstance> AllCards => _hand.Concat(_draw).Concat(_discard);
 
     /// <summary>Draws up to n cards, stopping when the hand is full or the draw pile is empty.</summary>
     public IReadOnlyList<CardInstance> Draw(int n)

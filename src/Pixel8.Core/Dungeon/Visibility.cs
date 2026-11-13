@@ -38,7 +38,7 @@ public static class Visibility
     public static TileKind? VisibleKind(Tile t, Vis v) => v switch
     {
         Vis.Known or Vis.Near => t.Kind,
-        Vis.Far when t.Kind is TileKind.Treasure or TileKind.Campfire or TileKind.Boss => t.Kind,
+        Vis.Far when t.Kind is TileKind.Treasure or TileKind.Campfire or TileKind.Merchant or TileKind.Boss => t.Kind,
         _ when t.Exposed => t.Kind,
         _ => null
     };

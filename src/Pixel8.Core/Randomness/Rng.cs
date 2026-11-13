@@ -25,6 +25,17 @@ public sealed class Rng
         if ((_s0 | _s1 | _s2 | _s3) == 0) _s0 = 1;
     }
 
+    /// <summary>The generator's internal state (4 words), for save games.</summary>
+    public uint[] GetState() => new[] { _s0, _s1, _s2, _s3 };
+
+    /// <summary>Restores a state from <see cref="GetState"/>: the stream continues exactly where it was saved.</summary>
+    public void SetState(IReadOnlyList<uint> state)
+    {
+        if (state.Count != 4) throw new ArgumentException("An Rng state has 4 words.", nameof(state));
+        (_s0, _s1, _s2, _s3) = (state[0], state[1], state[2], state[3]);
+        if ((_s0 | _s1 | _s2 | _s3) == 0) _s0 = 1;
+    }
+
     /// <summary>Creates an independent sub-stream keyed by name (FNV-1a mixed with the seed).</summary>
     public Rng Fork(string stream)
     {

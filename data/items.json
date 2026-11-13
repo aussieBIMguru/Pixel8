@@ -1,0 +1,20 @@
+{
+  "_comment": "Bag items, sold by the merchant at 'price'. In combat an item is a Quick action (B); on the map, P drinks a healing item.",
+  "items": [
+    {
+      "id": "potion_healing",
+      "name": "Potion of Healing",
+      "price": 25,
+      "text": "Quick: you or an ally heals 2d4+2.",
+      "effects": [
+        {
+          "type": "Heal",
+          "args": {
+            "dice": "2d4+2",
+            "target": "target"
+          }
+        }
+      ]
+    }
+  ]
+}

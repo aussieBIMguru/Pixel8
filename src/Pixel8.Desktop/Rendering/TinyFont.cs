@@ -40,6 +40,13 @@ public static class TinyFont
         ['+'] = new byte[] { 0, 2, 7, 2, 0 }, ['?'] = new byte[] { 6, 1, 2, 0, 2 },
         ['!'] = new byte[] { 2, 2, 2, 0, 2 }, ['('] = new byte[] { 1, 2, 2, 2, 1 },
         [')'] = new byte[] { 4, 2, 2, 2, 4 },
+        [','] = new byte[] { 0, 0, 0, 2, 4 }, ['\''] = new byte[] { 2, 2, 0, 0, 0 },
+        ['>'] = new byte[] { 4, 2, 1, 2, 4 }, ['<'] = new byte[] { 1, 2, 4, 2, 1 },
+        ['='] = new byte[] { 0, 7, 0, 7, 0 }, ['*'] = new byte[] { 0, 5, 2, 5, 0 },
+        ['['] = new byte[] { 6, 4, 4, 4, 6 }, [']'] = new byte[] { 3, 1, 1, 1, 3 },
+        ['#'] = new byte[] { 5, 7, 5, 7, 5 }, ['"'] = new byte[] { 5, 5, 0, 0, 0 },
+        [';'] = new byte[] { 0, 2, 0, 2, 4 }, ['_'] = new byte[] { 0, 0, 0, 0, 7 },
+        ['|'] = new byte[] { 2, 2, 2, 2, 2 },
     };
 
     public static int Measure(string text) => text.Length * Advance - 1;
@@ -59,6 +66,25 @@ public static class TinyFont
             cx += Advance;
         }
     }
+
+    /// <summary>Each font pixel drawn as a scale×scale block (title logo). Advance scales too.</summary>
+    public static void DrawScaled(SpriteBatch batch, PixelCanvas canvas, string text, int x, int y, int scale, Color color)
+    {
+        int cx = x;
+        foreach (char raw in text.ToUpperInvariant())
+        {
+            if (Glyphs.TryGetValue(raw, out var rows))
+            {
+                for (int row = 0; row < GlyphHeight; row++)
+                    for (int col = 0; col < GlyphWidth; col++)
+                        if ((rows[row] & (4 >> col)) != 0)
+                            canvas.Fill(batch, cx + col * scale, y + row * scale, scale, scale, color);
+            }
+            cx += Advance * scale;
+        }
+    }
+
+    public static int MeasureScaled(string text, int scale) => text.Length * Advance * scale - scale;
 
     /// <summary>Text with a 1px drop shadow — reads well on busy backgrounds.</summary>
     public static void DrawShadowed(SpriteBatch batch, PixelCanvas canvas, string text, int x, int y, Color color)

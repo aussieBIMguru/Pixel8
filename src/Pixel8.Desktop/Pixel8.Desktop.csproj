@@ -11,7 +11,19 @@
     <TieredPGO>true</TieredPGO>
     <RootNamespace>Pixel8.Desktop</RootNamespace>
     <AssemblyName>Pixel8</AssemblyName>
+    <!-- Pixelated "8" icon: the .exe icon on Windows. -->
+    <ApplicationIcon>Icon.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <!-- MonoGame DesktopGL loads the window/taskbar icon from these embedded resources (same as its project template). -->
+  <ItemGroup>
+    <EmbeddedResource Include="Icon.ico">
+      <LogicalName>Icon.ico</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Icon.bmp">
+      <LogicalName>Icon.bmp</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.2.1105" />
@@ -19,6 +31,17 @@
     <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.2.1105" />
     <MonoGameContentReference Include="Content\Content.mgcb" />
     -->
+  </ItemGroup>
+
+  <!-- Ship the JSON content next to the exe (ContentDb.FindDataDirectory checks the exe folder first). -->
+  <ItemGroup>
+    <None Include="..\..\data\*.json" Link="data\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- Licence files ship next to Pixel8.exe (and in the installer). -->
+  <ItemGroup>
+    <None Include="..\..\LICENSE" Link="LICENSE" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <None Include="..\..\THIRD-PARTY-NOTICES.md" Link="THIRD-PARTY-NOTICES.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
