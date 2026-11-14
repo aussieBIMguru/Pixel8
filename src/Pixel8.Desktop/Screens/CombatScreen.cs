@@ -36,15 +36,19 @@ public sealed class CombatScreen : IScreen
     private const int HandY = 100, CardW = 30, CardH = 40, CardGap = 2, MaxCards = 5;
     private const int ButtonsX = 172, ButtonW = 80, ButtonH = 9, HalfW = 39;
 
-    // Two half-width rows (Strike/Guard, class basic/Bag) then End turn and Flee at full width.
+    // Three half-width rows (Strike/Guard, class basic/Bag, Rearm/End turn) then Flee at full width.
     private static readonly Rectangle StrikeButton = new(ButtonsX, HandY, HalfW, ButtonH);
     private static readonly Rectangle GuardButton = new(ButtonsX + ButtonW - HalfW, HandY, HalfW, ButtonH);
     private static readonly Rectangle BasicButton = new(ButtonsX, HandY + 10, HalfW, ButtonH);
     private static readonly Rectangle ItemButton = new(ButtonsX + ButtonW - HalfW, HandY + 10, HalfW, ButtonH);
-    private static readonly Rectangle EndButton = new(ButtonsX, HandY + 20, ButtonW, ButtonH);
+    private static readonly Rectangle RearmButton = new(ButtonsX, HandY + 20, HalfW, ButtonH);
+    private static readonly Rectangle EndButton = new(ButtonsX + ButtonW - HalfW, HandY + 20, HalfW, ButtonH);
     private static readonly Rectangle FleeButton = new(ButtonsX, HandY + 30, ButtonW, ButtonH);
 
     private readonly CombatState _c;
+
+    /// <summary>The fight on screen (the debug panel uses it).</summary>
+    public CombatState Combat => _c;
     private readonly Action<CombatPhase> _onDone;
     private readonly ScreenShake _shake = new();
     private readonly Dictionary<Combatant, int> _shownHp = new();
@@ -70,6 +74,11 @@ public sealed class CombatScreen : IScreen
     private CardInstance? _selected;
     private CardDef? _basicSelected;
     private string? _itemSelected;
+
+    // Rearm picker (round 8): choose up to N cards from the active hero's discard pile.
+    private List<CardInstance>? _rearmOptions;
+    private readonly List<CardInstance> _rearmPicks = new();
+    private int _rearmCursor;
 
     // Little animations: attack lunges, spell sparkles, shield flashes (seconds left).
     private const float LungeTime = 0.3f, CastTime = 0.5f, ShieldTime = 0.45f;
@@ -187,6 +196,11 @@ public sealed class CombatScreen : IScreen
     {
         var hero = _c.ActiveHero!;
         var hand = hero.Deck.Hand;
+        if (_rearmOptions is not null)
+        {
+            UpdateRearm(input, hero);
+            return;
+        }
 
         _hoverCard = null;
         _hoverTarget = null;
@@ -246,6 +260,23 @@ public sealed class CombatScreen : IScreen
             UseBagItem(hero);
             return;
         }
+        if (input.Clicked(RearmButton) || input.Pressed(Keys.R))
+        {
+            if (_c.CanRearm(out string why))
+            {
+                CancelTargeting();
+                _rearmOptions = hero.Deck.Discard.OrderBy(x => x.BaseDef.Name).ThenBy(x => x.Upgraded).ToList();
+                _rearmPicks.Clear();
+                _rearmCursor = 0;
+                Sfx.Play("select");
+            }
+            else
+            {
+                _hint = why.ToUpperInvariant();
+                Sfx.Play("deny");
+            }
+            return;
+        }
         if (input.Clicked(EndButton) || input.PressedAny(Keys.E, Keys.Enter))
         {
             _hint = "";
@@ -257,6 +288,78 @@ public sealed class CombatScreen : IScreen
             if (_c.CanFlee(out string reason)) _c.Flee();
             else _hint = reason.ToUpperInvariant();
         }
+    }
+
+    // ------------------------------------------------------------------ rearm picker
+
+    private const int RearmRowH = 8;
+    private static readonly Rectangle RearmBox = new(48, 22, 160, 100);
+
+    private Rectangle RearmRow(int i) => new(RearmBox.X + 4, RearmBox.Y + 20 + i * RearmRowH, RearmBox.Width - 8, RearmRowH - 1);
+    private const int RearmRows = 8;
+
+    /// <summary>↑/↓ or click to pick cards (Space/click toggles, up to the limit), Enter or R to confirm, Esc to cancel.</summary>
+    private void UpdateRearm(Input input, Hero hero)
+    {
+        var options = _rearmOptions!;
+        int limit = _c.RearmLimit(hero);
+        if (input.Pressed(Keys.Escape) || input.RightClick)
+        {
+            _rearmOptions = null;
+            Sfx.Play("select");
+            return;
+        }
+        if (input.PressedAny(Keys.Up, Keys.W)) _rearmCursor = Math.Max(0, _rearmCursor - 1);
+        if (input.PressedAny(Keys.Down, Keys.S)) _rearmCursor = Math.Min(options.Count - 1, _rearmCursor + 1);
+        int top = Math.Max(0, Math.Min(_rearmCursor - RearmRows + 1, options.Count - RearmRows));
+
+        int digit = input.PressedDigit();
+        int toggle = -1;
+        if (digit >= 0 && top + digit < options.Count && digit < RearmRows) toggle = top + digit;
+        else if (input.Pressed(Keys.Space)) toggle = _rearmCursor;
+        else if (input.LeftClick)
+            for (int i = 0; i < RearmRows && top + i < options.Count; i++)
+                if (input.Over(RearmRow(i))) toggle = top + i;
+        if (toggle >= 0)
+        {
+            _rearmCursor = toggle;
+            var card = options[toggle];
+            if (_rearmPicks.Remove(card)) Sfx.Play("tick");
+            else if (_rearmPicks.Count < limit) { _rearmPicks.Add(card); Sfx.Play("tick"); }
+            else Sfx.Play("deny");
+        }
+
+        if (input.PressedAny(Keys.Enter, Keys.R) && _rearmPicks.Count > 0)
+        {
+            _c.Rearm(_rearmPicks.ToList());
+            _rearmOptions = null;
+            _rearmPicks.Clear();
+            Sfx.Play("confirm");
+        }
+    }
+
+    private void DrawRearm(SpriteBatch b, PixelCanvas c, Hero hero)
+    {
+        var options = _rearmOptions!;
+        int limit = _c.RearmLimit(hero);
+        Gui.Panel(b, c, RearmBox, Palette.Black, Palette.Lavender);
+        Gui.TextCenter(b, c, $"REARM: PICK UP TO {limit} ({_rearmPicks.Count}/{limit})", RearmBox.Center.X, RearmBox.Y + 4, Palette.Lavender, shadow: true);
+        Gui.TextCenter(b, c, "FROM THE DISCARD BACK INTO YOUR HAND", RearmBox.Center.X, RearmBox.Y + 11, Palette.DarkGrey);
+        int top = Math.Max(0, Math.Min(_rearmCursor - RearmRows + 1, options.Count - RearmRows));
+        for (int i = 0; i < RearmRows && top + i < options.Count; i++)
+        {
+            var card = options[top + i];
+            var r = RearmRow(i);
+            bool picked = _rearmPicks.Contains(card);
+            if (top + i == _rearmCursor) c.Fill(b, r, Palette.DarkBlue);
+            string mark = picked ? "[X]" : "[ ]";
+            var col = picked ? Palette.Green : card.Upgraded ? Palette.Peach : Palette.White;
+            TinyFont.Draw(b, c, $"{i + 1} {mark} {Gui.Clip(card.DisplayName.ToUpperInvariant(), 20)}", r.X + 2, r.Y + 1, col);
+            string speed = card.Def.Speed switch { CardSpeed.Quick => "Q", CardSpeed.Reaction => "R", _ => "A" };
+            TinyFont.Draw(b, c, speed, r.Right - 6, r.Y + 1, SpeedColor(card.Def.Speed));
+        }
+        Gui.TextCenter(b, c, "SPACE PICK  ENTER REARM  ESC BACK", RearmBox.Center.X, RearmBox.Bottom - 8,
+            _rearmPicks.Count > 0 ? Palette.Yellow : Palette.DarkGrey);
     }
 
     private void Select(CardInstance card)
@@ -297,7 +400,9 @@ public sealed class CombatScreen : IScreen
     {
         if (!_c.CanUseBasic(def))
         {
-            _hint = def.Exhaust ? $"{def.Name} IS ONCE PER FIGHT".ToUpperInvariant() : $"{def.Speed} ALREADY USED".ToUpperInvariant();
+            _hint = def.Exhaust ? $"{def.Name} IS ONCE PER FIGHT".ToUpperInvariant()
+                : _c.ActiveHero is { } h && _c.BasicUsesLeft(h, def) == 0 ? $"NO {def.Name} LEFT THIS FIGHT".ToUpperInvariant()
+                : $"{def.Speed} ALREADY USED".ToUpperInvariant();
             Sfx.Play("deny");
             return;
         }
@@ -404,8 +509,8 @@ public sealed class CombatScreen : IScreen
         {
             TimingGrade.Perfect => "perfect",
             TimingGrade.Good => "good",
-            TimingGrade.Ok => "select",
-            _ => "deny"
+            TimingGrade.Ok => "ok",
+            _ => "timing_miss"
         });
         if (grade == TimingGrade.Perfect) _shake.Trigger(1, 0.1f);
     }
@@ -438,7 +543,17 @@ public sealed class CombatScreen : IScreen
                     _cast[cp.Actor] = CastTime;
                     Sfx.Play("part", 0.8f, 0.5f);
                 }
+                else if (cp.Actor is Hero) Sfx.Play("card");
                 return 0.25f;
+            case CardsDrawn:
+                Sfx.Play("draw");
+                return 0.1f;
+            case IntentChosen ic when ic.Intent.Area:
+                Sfx.Play("roar");
+                return 0.2f;
+            case IntentRecharged:
+                Sfx.Play("recharge");
+                return 0.2f;
             case CheckRolled cr:
                 if (cr.Versus == "AC") _lunge[cr.Roller] = LungeTime;
                 return _strip.Show(cr);
@@ -452,11 +567,16 @@ public sealed class CombatScreen : IScreen
                 // Projectiles launch while the dice roll, so they land as the damage does.
                 string kind = FxFor(dr.Source, dr.Type);
                 if (VfxPlayer.Lead(kind) > 0) _vfx.Spawn(kind, Center(dr.Source), Center(dr.Target));
+                if (dr.Type == "graze") Sfx.Play("graze");
                 return _strip.Show(dr);
             }
+            case Rearmed ra:
+                Float(ra.Hero, $"REARM {ra.Cards.Count}", Palette.Lavender, -6);
+                Sfx.Play("rearm");
+                return 0.35f;
             case LuckSpent ls:
                 Float(ls.Hero, "LUCK!", Palette.Green, -6);
-                Sfx.Play("coin");
+                Sfx.Play("luck");
                 return 0.3f;
             case TimingResolved tr:
                 Float(tr.Defender, TimingRules.Label(tr.Grade) + "!", GradeColor(tr.Grade), -6);
@@ -476,7 +596,7 @@ public sealed class CombatScreen : IScreen
                 Float(d.Target, d.Amount > 0 ? $"-{d.Amount}" : "BLOCKED", Palette.Red, 0);
                 if (d.Target is Hero) _shake.Trigger(2, 0.2f);
                 else _shake.Trigger(1, 0.1f);
-                Sfx.Play(d.Amount == 0 ? "block" : d.Target is Hero ? "hurt" : "hit");
+                Sfx.Play(d.Amount == 0 ? "block" : d.Type.Equals("poison", StringComparison.OrdinalIgnoreCase) ? "poison" : d.Target is Hero ? "hurt" : "hit");
                 return 0.35f;
             case Healed h:
                 _shownHp[h.Target] = Math.Min(h.Target.MaxHp, Shown(h.Target) + h.Amount);
@@ -491,6 +611,7 @@ public sealed class CombatScreen : IScreen
                 return 0.25f;
             case ConditionApplied ca:
                 Float(ca.Target, ca.Condition.ToUpperInvariant(), Palette.Pink, 0);
+                if (ca.Condition.Equals("poisoned", StringComparison.OrdinalIgnoreCase)) Sfx.Play("poison");
                 return 0.2f;
             case HeroDowned:
                 _shake.Trigger(3, 0.3f);
@@ -504,9 +625,68 @@ public sealed class CombatScreen : IScreen
                 return 0.5f;
             case RollModified:
                 return 0.4f;
+            // ---- round 11
+            case TurnSkipped ts:
+                Float(ts.Actor, ts.Condition.ToUpperInvariant() + "!", Palette.Lavender, -6);
+                Sfx.Play("deny");
+                return 0.45f;
+            case InspirationGained ig:
+                _vfx.Spawn("song", Center(ig.Hero), Center(ig.Hero));
+                Float(ig.Hero, $"INSPIRED {ig.Dice}", Palette.Yellow, -6);
+                Sfx.Play("luck");
+                return 0.3f;
+            case InspirationUsed iu2:
+                Float(iu2.Hero, $"+{iu2.Roll} INSPIRE", Palette.Yellow, -6);
+                Sfx.Play(iu2.Turned ? "luck" : "tick");
+                return 0.3f;
+            case SmitePrimed sp:
+                _cast[sp.Hero] = CastTime;
+                Sfx.Play("part", 0.8f, 0.5f);
+                return 0.2f;
+            case Smote sm:
+                _vfx.Spawn("radiant", Center(sm.Target), Center(sm.Target));
+                Float(sm.Hero, "SMITE!", Palette.Yellow, -6);
+                return 0.25f;
+            case WildShapeStarted ws:
+                _vfx.Spawn("poof", Center(ws.Hero), Center(ws.Hero));
+                Float(ws.Hero, ws.Form.Name.ToUpperInvariant() + "!", Palette.Brown, -6);
+                Sfx.Play("roar");
+                return 0.4f;
+            case WildShapeEnded we:
+                _vfx.Spawn("poof", Center(we.Hero), Center(we.Hero));
+                Float(we.Hero, "BACK TO FORM", Palette.LightGrey, -6);
+                return 0.35f;
+            case TempHpGained tg:
+                Float(tg.Target, $"+{tg.Amount} TEMP", Palette.Peach, 0);
+                Sfx.Play("block");
+                return 0.25f;
+            case HeadSevered hs:
+                Float(hs.Enemy, "HEAD OFF!", Palette.Orange, -6);
+                _shake.Trigger(2, 0.2f);
+                Sfx.Play("crit");
+                return 0.4f;
+            case HeadsRegrew hr:
+                Float(hr.Enemy, "REGROWS!", Palette.Green, -6);
+                Sfx.Play("roar");
+                return 0.35f;
+            case RegenTired rt:
+                Float(rt.Enemy, "TIRED!", Palette.LightGrey, -6);
+                return 0.35f;
+            case EnemiesSummoned es:
+                foreach (var en in es.Summoned)
+                {
+                    _shownHp[en] = en.Hp;
+                    _vfx.Spawn("necrotic", Center(en), Center(en));
+                }
+                _shake.Trigger(2, 0.3f);
+                Sfx.Play("roar");
+                return 0.6f;
+            case LegendaryTurn:
+                return 0.15f;
             case CombatEnded ce:
                 SyncHp();
-                Sfx.Play(ce.Outcome == CombatPhase.Victory ? "coin" : ce.Outcome == CombatPhase.Defeat ? "down" : "select");
+                // Victory and defeat have music stings (Pixel8Game); fleeing gets a blip.
+                if (ce.Outcome == CombatPhase.Fled) Sfx.Play("back");
                 return 0.3f;
             default:
                 return 0f;
@@ -521,6 +701,7 @@ public sealed class CombatScreen : IScreen
     /// </summary>
     private string FxFor(Combatant source, string type)
     {
+        if (type == "poison") return "poison";   // a poison tick (its source is the bearer)
         if (source is Enemy enemy)
             return enemy.Def.Intents.FirstOrDefault(i => i.Name == type)?.Fx ?? "slash";
         if (_fxCard?.Fx is { Length: > 0 } cardFx) return cardFx;
@@ -529,6 +710,12 @@ public sealed class CombatScreen : IScreen
             "fire" => "fire",
             "force" => "missile",
             "radiant" => "radiant",
+            "poison" => "poison",
+            "psychic" => "song",
+            "lightning" => "bolt",
+            "thunder" => "smash",
+            "necrotic" => "necrotic",
+            "cold" => "frost",
             _ => (source as Hero)?.Class.WeaponFx ?? "slash"
         };
     }
@@ -629,27 +816,56 @@ public sealed class CombatScreen : IScreen
         foreach (var e in _c.Enemies) DrawEnemy(b, c, s, e);
         DrawInfo(b, c);
 
-        if (_c.ActiveHero is not null && !_c.IsOver) DrawHand(b, c, _c.ActiveHero);
+        if (_c.ActiveHero is not null && !_c.IsOver) DrawHand(b, c, s, _c.ActiveHero);
         else if (!_c.IsOver) Gui.TextCenter(b, c, "ENEMY TURN...", 128, HandY + 16, Palette.DarkGrey);
 
         _vfx.Draw(b, c);
         foreach (var f in _floaters)
             TinyFont.DrawShadowed(b, c, f.Text, (int)f.Pos.X, (int)f.Pos.Y, f.Color);
 
+        if (!Busy && _rearmOptions is not null && _c.ActiveHero is not null) DrawRearm(b, c, _c.ActiveHero);
         if (!Busy && _c.Phase == CombatPhase.AwaitingReaction) DrawReaction(b, c);
         if (!Busy && _c.Phase == CombatPhase.AwaitingTiming && _timingFor is not null) DrawTiming(b, c, s);
         if (!Busy && _c.IsOver) DrawEndBanner(b, c);
+        if (!Busy && !Targeting && _hoverTarget is Hero gearHero && gearHero.UsesGear) DrawGearTip(b, c, s, gearHero);
+    }
+
+    /// <summary>Round 10: hovering a hero shows their gear (read-only; change it with G on the map).</summary>
+    private void DrawGearTip(SpriteBatch b, PixelCanvas c, SpriteSheet s, Hero hero)
+    {
+        var p = PosOf(hero);
+        var r = new Rectangle(Math.Min(p.X + 66, PixelCanvas.Width - 94), Math.Clamp(p.Y - 2, 10, PixelCanvas.Height - 52), 92, 49);
+        Gui.Panel(b, c, r, Palette.Black, Palette.LightGrey);
+        TinyFont.Draw(b, c, $"AC{hero.Ac} HIT{(hero.AttackMod >= 0 ? "+" : "")}{hero.AttackMod} {hero.Weapon.ToString().ToUpperInvariant()}", r.X + 3, r.Y + 3, Palette.White);
+        int y = r.Y + 11;
+        foreach (var slot in Enum.GetValues<Pixel8.Core.Gear.GearSlot>())
+        {
+            var g = hero.Loadout[slot];
+            // Round 12: gear icons (the slot letter marks an empty slot).
+            if (g is null) TinyFont.Draw(b, c, $"{GearText.SlotLetter(slot)} -", r.X + 3, y + 1, Palette.DarkGrey);
+            else
+            {
+                s.Draw(b, GearIcons.For(g.Def), r.X + 2, y);
+                TinyFont.Draw(b, c, Gui.Clip(g.Name.ToUpperInvariant(), 19), r.X + 12, y + 1, GearText.RarityColor(g.EffectiveRarity));
+            }
+            y += 9;
+        }
     }
 
     private void DrawTopBar(SpriteBatch b, PixelCanvas c)
     {
         TinyFont.DrawShadowed(b, c, $"ROUND {_c.Round}", 4, 3, Palette.Peach);
         // Luck in green while this fight's reroll is still available, grey once it's been used.
-        TinyFont.DrawShadowed(b, c, $"LUCK {_c.Party.Luck}", 42, 3, _c.LuckAvailable ? Palette.Green : Palette.DarkGrey);
+        // Fight Luck (from the difficulty) plus any run Luck from events.
+        string luck = _c.Party.Luck > 0 ? $"LUCK {_c.FightLuck}+{_c.Party.Luck}" : $"LUCK {_c.FightLuck}";
+        TinyFont.DrawShadowed(b, c, luck, 38, 3, _c.LuckAvailable ? Palette.Green : Palette.DarkGrey);
         string kind = _c.Kind == CombatKind.Normal ? "" : _c.Kind.ToString().ToUpperInvariant();
         Gui.TextCenter(b, c, kind, 128, 3, Palette.Pink, shadow: true);
         Gui.TextRight(b, c, $"TORCH {_c.Party.Torch}  GOLD {_c.Party.Gold}", 252, 3, Palette.Orange, shadow: true);
-        if (_c.Dark && (int)(_time * 2) % 3 != 0)
+        bool blink = (int)(_time * 2) % 3 != 0;
+        if (_c.SurpriseNow && (!_c.Dark || !blink))
+            TinyFont.DrawShadowed(b, c, "SURPRISE: ADV", 76, 3, Palette.Green);
+        else if (_c.Dark && blink)
             TinyFont.DrawShadowed(b, c, "DARK: DIS", 76, 3, Palette.Lavender);
     }
 
@@ -658,7 +874,9 @@ public sealed class CombatScreen : IScreen
         card.Spell || card.Check == CheckKind.Save
         || card.ClassId.Equals("wizard", StringComparison.OrdinalIgnoreCase)
         || card.ClassId.Equals("cleric", StringComparison.OrdinalIgnoreCase)
-        || card.Id.Equals("basic.spare_the_dying", StringComparison.OrdinalIgnoreCase);
+        || card.ClassId.Equals("bard", StringComparison.OrdinalIgnoreCase)
+        || card.ClassId.Equals("druid", StringComparison.OrdinalIgnoreCase)
+        || card.Id is "basic.spare_the_dying" or "basic.bardic_inspiration" or "basic.lay_on_hands";
 
     /// <summary>Lunge: a quick hop of up to 4px toward the other side (heroes right, enemies left), then back.</summary>
     private int LungeOffset(Combatant who)
@@ -718,6 +936,8 @@ public sealed class CombatScreen : IScreen
         else TinyFont.Draw(b, c, $"{hp}/{h.MaxHp}", p.X + 11, p.Y + 12, Palette.LightGrey);
 
         if (h.Block > 0) TinyFont.Draw(b, c, $"[{h.Block}]", p.X + 35, p.Y + 12, Palette.Blue);
+        // Round 11: temporary HP (Wild Shape, Heroism) after the HP bar.
+        if (h.TempHp > 0 && !down) TinyFont.Draw(b, c, $"+{h.TempHp}", p.X + 52, p.Y + 7, Palette.Peach);
         DrawConditions(b, c, h, p.X + 52, p.Y);
     }
 
@@ -752,6 +972,27 @@ public sealed class CombatScreen : IScreen
             col = Palette.Blue;
             icon = "i.guard";
         }
+        else if (intent.Intent.Area)
+        {
+            text = intent.Intent.Save is { Length: > 0 } save ? $"ALL {save.ToUpperInvariant()} {intent.Intent.SaveDc}" : "ALL";
+            col = Palette.Red;
+            icon = "i.attack";
+        }
+        else if (intent.Intent.PerHead)
+        {
+            // Round 11: the Hydra bites once per head.
+            text = $"{_c.HeadsOf(e)} {Gui.Clip(intent.Intent.Name.ToUpperInvariant(), 7)}";
+            col = Palette.Red;
+            icon = "i.attack";
+        }
+        else if (intent.Intent.Save is { Length: > 0 } single)
+        {
+            // Round 11: a single-target save (Basilisk's gaze, the Vampire's charm).
+            string who = intent.Target is null ? "?" : Gui.Clip(intent.Target.Name.ToUpperInvariant(), 7);
+            text = $"{who} {single.ToUpperInvariant()} {intent.Intent.SaveDc}";
+            col = Palette.Pink;
+            icon = "i.attack";
+        }
         else
         {
             string target = intent.Target is null ? "?" : Gui.Clip(intent.Target.Name.ToUpperInvariant(), 8);
@@ -759,14 +1000,23 @@ public sealed class CombatScreen : IScreen
             col = Palette.Red;
             icon = "i.attack";
         }
+        // Round 11: legendary actions add their extra intent's first word ("+RAY").
+        if (_c.LegendaryIntentFor(e) is { } extra)
+            text += " +" + Gui.Clip(extra.Name.Split(' ')[0].ToUpperInvariant(), 5);
         Gui.TextRight(b, c, text, 252, p.Y + 12, col);
         s.Draw(b, icon, 252 - TinyFont.Measure(text) - 10, p.Y + 10);
         if (intent.Intent.Big && (int)(_time * 4) % 4 != 0)
             s.Draw(b, "i.bolt", 252 - TinyFont.Measure(text) - 19, p.Y + 10);
     }
 
-    private static string SpriteFor(SpriteSheet s, Combatant c)
+    private string SpriteFor(SpriteSheet s, Combatant c)
     {
+        // Round 11: a Druid in Wild Shape is drawn as the beast (beast.<form>, else the enemy sprite of that name).
+        if (c is Hero shaped && _c.FormOf(shaped) is { } form)
+        {
+            if (s.Has("beast." + form.Form)) return "beast." + form.Form;
+            if (s.Has("enemy." + form.Form)) return "enemy." + form.Form;
+        }
         string name = c switch
         {
             Hero h => "hero." + h.Class.Id,
@@ -800,6 +1050,15 @@ public sealed class CombatScreen : IScreen
                 Cond.Blessed => Palette.Yellow,
                 Cond.Taunting => Palette.Red,
                 Cond.Marked => Palette.Pink,
+                Cond.Poisoned => Palette.Green,
+                Cond.Paralyzed => Palette.Blue,
+                Cond.Charmed => Palette.Pink,
+                Cond.Restrained => Palette.DarkGreen,
+                Cond.Outlined => Palette.Peach,
+                Cond.Hunted => Palette.Orange,
+                Cond.Inspired => Palette.Yellow,
+                Cond.Smiting => Palette.White,
+                Cond.Wild => Palette.Brown,
                 _ => Palette.Lavender
             };
             TinyFont.Draw(b, c, cond[..1].ToUpperInvariant(), x, y, col);
@@ -839,7 +1098,7 @@ public sealed class CombatScreen : IScreen
             _strip.Draw(b, c);
             return;
         }
-        _strip.Draw(b, c, $"MISS! REROLL FOR 1 LUCK? ({_c.Party.Luck})", hideLastRow: true);
+        _strip.Draw(b, c, $"MISS! REROLL FOR 1 LUCK? ({_c.LuckLeft})", hideLastRow: true);
         Gui.Button(b, c, LuckYesRect, "Y  REROLL", LuckYesRect.Contains(_pointer), true, Palette.Green);
         Gui.Button(b, c, LuckNoRect, "N  KEEP", LuckNoRect.Contains(_pointer));
     }
@@ -851,7 +1110,8 @@ public sealed class CombatScreen : IScreen
         Gui.Panel(b, c, box, Palette.Black, Palette.Red);
         s.Draw(b, "i.bolt", box.X + 4, box.Y + 3);
         s.Draw(b, "i.bolt", box.Right - 12, box.Y + 3);
-        Gui.TextCenter(b, c, Gui.Clip($"{p.Attacker.Name} {p.Intent.Name} > {p.Defender.Name}!".ToUpperInvariant(), 40), box.Center.X, box.Y + 5, Palette.Red, shadow: true);
+        string victim = p.Area is null ? p.Defender.Name : "THE PARTY";
+        Gui.TextCenter(b, c, Gui.Clip($"{p.Attacker.Name} {p.Intent.Name} > {victim}!".ToUpperInvariant(), 40), box.Center.X, box.Y + 5, Palette.Red, shadow: true);
 
         string sub;
         Color subColor;
@@ -913,7 +1173,7 @@ public sealed class CombatScreen : IScreen
         }
     }
 
-    private void DrawHand(SpriteBatch b, PixelCanvas c, Hero hero)
+    private void DrawHand(SpriteBatch b, PixelCanvas c, SpriteSheet s, Hero hero)
     {
         // Prompt line above the hand
         string prompt = _hint;
@@ -937,9 +1197,9 @@ public sealed class CombatScreen : IScreen
 
         var hand = hero.Deck.Hand;
         for (int i = 0; i < Math.Min(hand.Count, MaxCards); i++)
-            DrawCard(b, c, hand[i], CardRect(i, hand[i]), i);
+            DrawCard(b, c, s, hand[i], CardRect(i, hand[i]), i);
         if (hand.Count == 0)
-            TinyFont.Draw(b, c, "NO CARDS: USE STRIKE OR GUARD", 4, HandY + 16, Palette.DarkGrey);
+            TinyFont.Draw(b, c, "NO CARDS: STRIKE, GUARD OR R REARM", 4, HandY + 16, Palette.DarkGrey);
 
         bool idle = !Busy && _c.Phase == CombatPhase.HeroTurn;
         var strike = _c.Content.Card(ContentDb.BasicStrikeId);
@@ -948,18 +1208,24 @@ public sealed class CombatScreen : IScreen
         Gui.Button(b, c, GuardButton, "G GUARD", idle && GuardButton.Contains(_pointer), idle && _c.CanUseBasic());
         var basic = _c.ClassBasic(hero);
         string basicLabel = basic is null ? "C -" : "C " + (basic.Short ?? Gui.Clip(basic.Name.ToUpperInvariant(), 7)).ToUpperInvariant();
+        // Round 11: basics with uses or a pool show what's left (Bardic Inspiration 2, Lay on Hands 6).
+        if (basic is not null && (basic.Uses > 0 || basic.Effects.Any(e => e.Type.Equals("LayOnHands", StringComparison.OrdinalIgnoreCase)))
+            && _c.BasicUsesLeft(hero, basic) is int left)
+            basicLabel = $"C {Gui.Clip((basic.Short ?? basic.Name).ToUpperInvariant(), 5)} {left}";
         Gui.Button(b, c, BasicButton, basicLabel, idle && BasicButton.Contains(_pointer), idle && basic is not null && _c.CanUseBasic(basic),
             basic is not null && ReferenceEquals(_basicSelected, basic) ? Palette.Yellow : basic?.Speed == CardSpeed.Quick ? Palette.Green : Palette.Blue);
         int items = _c.Party.Bag.Count;
         string? firstItem = _c.Party.Bag.FirstOrDefault();
         Gui.Button(b, c, ItemButton, $"B BAG {items}", idle && ItemButton.Contains(_pointer), idle && firstItem is not null && _c.CanUseItem(firstItem),
             _itemSelected is not null ? Palette.Yellow : Palette.Green);
-        Gui.Button(b, c, EndButton, "E  END TURN", idle && EndButton.Contains(_pointer), idle, Palette.Green);
+        bool canRearm = idle && _c.CanRearm(out _);
+        Gui.Button(b, c, RearmButton, $"R REARM {_c.RearmLimit(hero)}", idle && RearmButton.Contains(_pointer), canRearm, Palette.Lavender);
+        Gui.Button(b, c, EndButton, "E END", idle && EndButton.Contains(_pointer), idle, Palette.Green);
         bool canFlee = _c.CanFlee(out _);
         Gui.Button(b, c, FleeButton, canFlee ? $"F  FLEE -{_c.Content.Balance.FleeTorchCost} TORCH" : "F  NO ESCAPE", idle && FleeButton.Contains(_pointer), idle && canFlee);
     }
 
-    private void DrawCard(SpriteBatch b, PixelCanvas c, CardInstance card, Rectangle r, int index)
+    private void DrawCard(SpriteBatch b, PixelCanvas c, SpriteSheet s, CardInstance card, Rectangle r, int index)
     {
         bool playable = !Busy && _c.CanPlay(card);
         bool selected = ReferenceEquals(card, _selected);
@@ -976,6 +1242,8 @@ public sealed class CombatScreen : IScreen
         TinyFont.Draw(b, c, (index + 1).ToString(), r.X + 2, r.Y + 2, Palette.LightGrey);
         string speed = card.Def.Speed switch { CardSpeed.Quick => "Q", CardSpeed.Reaction => "R", _ => "A" };
         TinyFont.Draw(b, c, speed, r.Right - 5, r.Y + 2, SpeedColor(card.Def.Speed));
+        // Round 12: card icon, top centre between the hotkey and the speed letter.
+        s.Draw(b, CardIcons.For(card.Def), r.Center.X - SpriteSheet.Size / 2, r.Y + 1, playable || selected ? null : Palette.LightGrey);
 
         int y = r.Y + 10;
         foreach (string line in Gui.Wrap(card.ToString().ToUpperInvariant(), 7).Take(3))

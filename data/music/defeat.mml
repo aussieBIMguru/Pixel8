@@ -1,0 +1,9 @@
+# Defeat sting (plays once).
+title: Defeat
+tempo: 90
+loop: no
+
+A: @2 v10 o5 e4 d+4 d4 c+4 c1
+B: @0 v7 o4 g4 f+4 f4 e4 d+1
+T: o3 c2 o2 b2 a+2 a2
+N: v8 x1 r1

@@ -1,0 +1,26 @@
+# Depth 5: the Lich's crypt. D harmonic minor, slow and cold.
+title: The Cold Crypt
+tempo: 76
+loop: yes
+
+# Bars: Dm C#dim Dm Bb | Gm A Dm A | Bb Gm C#dim A | Dm Bb A Dm
+A: @2 v9 l4
+A: o5 d f a2 | o5 c+ e g2 | o5 f e d2 | o5 d2. r
+A: o5 g b- o6 d2 | o6 c+2 o5 a2 | o5 a f d f | o5 e2. r
+A: o5 f b- o6 d c | o5 b- a g2 | o5 e g b- g | o5 a2 c+2
+A: o5 d f a o6 d | o6 d c o5 b- f | o5 e c+ e a | o5 d1
+
+B: @1 v5 l2 o4
+B: f a e g f a f b-
+B: g b- e a f a e a
+B: f b- g b- e g e a
+B: f a f b- e g f a
+
+T: l4 o2
+T: d d a d c+ c+ g c+ d d a d b- b- f b-
+T: g g d g a a e a d d a d a a e a
+T: b- b- f b- g g d g c+ c+ g c+ a a e a
+T: d d a d b- b- f b- a a e a d d a d
+
+N: v5
+N: [k2 h4 s4 k2 r4 h4]8

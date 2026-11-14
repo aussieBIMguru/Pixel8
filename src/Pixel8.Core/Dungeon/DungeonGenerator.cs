@@ -17,6 +17,8 @@ public sealed record DungeonParams
     public int MaxElites { get; init; } = 2;
     /// <summary>Place a merchant tile (shop mode "on map"). Off when the shop lives at campfires or is always open.</summary>
     public bool Merchant { get; init; } = true;
+    /// <summary>Round 10: chance that a treasure not exposed at the start is a mimic (balance gear.mimicChance).</summary>
+    public double MimicChance { get; init; }
 
     /// <summary>Weights for ordinary rooms that aren't otherwise forced.</summary>
     public IReadOnlyList<(TileKind Item, int Weight)> RoomTable { get; init; } = new[]
@@ -74,6 +76,7 @@ public static class DungeonGenerator
         EnforceElites(g, fixedTiles, p, rng);
         ApplySafetyRules(g);
         ExposeTreasure(g, p, rng);
+        PlaceMimics(g, seed, p);
 
         g.Torch = (int)Math.Ceiling(boss.Distance * p.TorchMultiplier);
         entrance.Visited = true;
@@ -260,6 +263,18 @@ public static class DungeonGenerator
                 streak = 0;
             }
         }
+    }
+
+    /// <summary>
+    /// Round 10: hidden treasure may be a mimic. Uses its own random stream, so turning mimics on doesn't change
+    /// any layout. Exposed treasure is never a mimic (a goal players can trust).
+    /// </summary>
+    private static void PlaceMimics(DungeonGrid g, ulong seed, DungeonParams p)
+    {
+        if (p.MimicChance <= 0) return;
+        var rng = new Rng(seed).Fork($"mimic-{p.Depth}");
+        foreach (var t in g.Rooms.Where(t => t.Kind == TileKind.Treasure && !t.Exposed).OrderBy(t => t.Y).ThenBy(t => t.X))
+            t.Mimic = rng.Chance(p.MimicChance);
     }
 
     private static void ExposeTreasure(DungeonGrid g, DungeonParams p, Rng rng)

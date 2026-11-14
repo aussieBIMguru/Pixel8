@@ -95,12 +95,18 @@ internal sealed class RollStrip
             int parts = NumericParts.Count;
             if (_stage == 0) { _stage = 1; Sfx.Play("land"); }
             int shown = Math.Min(parts, (int)((_t - Tumble) / PartStep) + 1);
-            while (_stage - 1 < shown && _stage - 1 < parts) { _stage++; Sfx.Play("part", 0.5f, 0.1f * _stage); }
+            while (_stage - 1 < shown && _stage - 1 < parts)
+            {
+                // Focus (round 8) gets its own rising sound as its part slides in.
+                bool focus = NumericParts[_stage - 1].Label.Equals("FOCUS", StringComparison.OrdinalIgnoreCase);
+                _stage++;
+                Sfx.Play(focus ? "focus" : "part", focus ? 0.8f : 0.5f, focus ? 0f : 0.1f * _stage);
+            }
             if (_t >= VerdictAt && _stage < 100)
             {
                 _stage = 100;
                 var r = _check.Result;
-                Sfx.Play(r.Critical ? "crit" : r.Success == (_check.Versus == "AC") ? "confirm" : "miss");
+                Sfx.Play(r.Critical ? "crit" : r.Fumble ? "fumble" : r.Success == (_check.Versus == "AC") ? "confirm" : "miss");
             }
         }
         else if (_damage is not null && _stage == 0)
@@ -199,7 +205,9 @@ internal sealed class RollStrip
     {
         var r = e.Result;
         if (e.Versus == "DC")
-            return r.Success ? ("SAVED", Palette.Blue) : ("FAILED!", Palette.Green);
+            return e.Roller is Enemy
+                ? (r.Success ? ("SAVED", Palette.Blue) : ("FAILED!", Palette.Green))
+                : (r.Success ? ("SAVED!", Palette.Green) : ("FAILED", Palette.Red));   // a hero saving vs breath
         bool heroRolled = e.Roller is not Enemy;
         if (r.Critical) return ("CRIT!", heroRolled ? Palette.Yellow : Palette.Red);
         if (r.Fumble) return ("FUMBLE", Palette.DarkGrey);

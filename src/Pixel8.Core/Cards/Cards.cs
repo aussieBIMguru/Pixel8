@@ -35,8 +35,11 @@ public sealed record CardDef(
     CardUpgradeDef? Upgrade = null,
     bool Spell = false,
     string? Short = null,
-    string? Fx = null)
+    string? Fx = null,
+    int Uses = 0)
 {
+    // Uses (round 11): a class basic usable this many times per fight (Bardic Inspiration 2). 0 = no limit
+    // (or once per fight with Exhaust).
     // Fx: the hit effect the screen draws (slash, stab, fire, missile, radiant, bolt, ...). See ContentDb.KnownFx.
     // Spell: an Attack card rolls the hero's spell attack (SpellDc − 8) instead of their weapon attack.
     // Short: a label of up to 6 characters for small buttons (class basic actions).
@@ -153,6 +156,14 @@ public sealed class HeroDeck
 
     /// <summary>New cards from rewards are shuffled into the draw pile at a random position.</summary>
     public void AddCard(CardInstance card, Rng rng) => _draw.Insert(rng.Next(_draw.Count + 1), card);
+
+    /// <summary>Rearm: a card from the discard pile goes back into the hand (if there's room).</summary>
+    public bool ReturnToHand(CardInstance card)
+    {
+        if (_hand.Count >= MaxHand || !_discard.Remove(card)) return false;
+        _hand.Add(card);
+        return true;
+    }
 
     public bool RemoveCard(CardInstance card) =>
         _draw.Remove(card) || _discard.Remove(card) || _hand.Remove(card);

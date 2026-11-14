@@ -33,8 +33,38 @@ library's licence text into the release.
 ### 5e System Reference Document 5.1 (CC BY 4.0)
 
 Creature names and statistics in `data/enemies.json` (kobold, giant rat, goblin, skeleton, wolf, orc, bugbear,
-ogre), the d20-versus-AC/DC resolution, advantage/disadvantage, death saves and the spell names used on cards
-(Burning Hands, Magic Missile, Shield, Bless, Cure Wounds, Sacred Flame) come from the SRD 5.1.
+ogre, bandit, zombie, giant wolf spider, gnoll, hobgoblin, ghoul, owlbear, young green dragon, mimic, and from round 11
+troll, wight, gargoyle, basilisk, wraith, mummy, vampire spawn, vampire, hydra, lich), the
+d20-versus-AC/DC resolution, advantage/disadvantage, death saves, "Recharge 5–6" abilities, and the spell, feature
+and item names used on cards (Burning Hands, Magic Missile, Shield, Bless, Cure Wounds, Sacred Flame, Chromatic Orb,
+Scorching Ray, Thunderwave, Ray of Sickness, Mage Armor, Fireball, Lightning Bolt, Arcane Recovery, Guiding Bolt,
+Healing Word, Shield of Faith, Spiritual Weapon, Prayer of Healing, Spirit Guardians, Mass Healing Word,
+Channel Divinity, Action Surge, Extra Attack, Uncanny Dodge, Fast Hands, Alchemist's Fire, Basic Poison,
+Potion of Heroism) come from the SRD 5.1. Some numbers are scaled in game (enemy HP, the dragon's breath damage)
+and some abilities are simplified; the published values are kept in the data files.
+
+Gear in `data/gear.json` (round 10) uses SRD 5.1 equipment and magic item names: the weapons and armor (dagger,
+quarterstaff, mace, shortsword, rapier, longsword, battleaxe, greatsword, leather, studded leather, scale mail,
+breastplate, half plate, chain mail, plate, shield), +1/+2 weapons, armor and shields, Flame Tongue, Dagger of
+Venom, Vicious Weapon, Staff of Withering, Mace of Disruption, Berserker Axe, Mithral Armor, Elven Chain, Robe of
+Eyes, Sentinel Shield, Wand of the War Mage, Cloak of Protection, Gauntlets of Ogre Power, Stone of Good Luck,
+Pearl of Power, Ring of Protection, Amulet of Health, Ring of Regeneration and Bracers of Defense. Their game
+effects are simplified and rebalanced. The other gear names (Robes, Off-hand Dagger, Crystal Orb, Bone Charm, Lucky
+Rabbit's Foot) are generic descriptions. The gear event names and texts are original.
+
+Round 11 adds, from the SRD 5.1: the Bard, Ranger, Druid and Paladin classes and the features and spells named on
+their cards (Bardic Inspiration, Cutting Words, Jack of All Trades, Vicious Mockery, Healing Word, Faerie Fire,
+Heroism, Thunderwave, Hold Person, Hypnotic Pattern, Hunter's Mark, Colossus Slayer, Volley, Horde Breaker, Escape
+the Horde, Natural Explorer, Goodberry, Produce Flame, Wild Shape, Entangle, Cure Wounds, Moonbeam, Barkskin,
+Flaming Sphere, Call Lightning, Mass Cure Wounds, Lay on Hands, Divine Smite, Branding Smite, Divine Favor, Bless,
+Aura of Protection, Sacred Weapon); the Wild Shape beasts (wolf, brown bear, dire wolf); the creatures troll,
+wight, gargoyle, basilisk, wraith, mummy, vampire spawn, vampire, hydra and lich, with their abilities (Petrifying
+Gaze, Life Drain, Rotting Fist, Regeneration, Paralyzing Touch, Cone of Cold, Ray of Frost, Frightening Gaze); and
+the longbow, shortbow, light crossbow and Oathbow. The other new card names (Rallying Tune, Discordant Note, Barbed
+Arrow, Snaring Shot, Storm Arrow, Arrow Storm, Twin Shot, Thorn Lash, Thunder Strike, Holy Wrath, Sworn Challenge,
+Radiant Wave) and gear names (Lute, Fine Lute, Silver Harp, Druidic Focus, Woodland Totem, Holy Symbol, Reliquary)
+are original or generic. The Beholder is Wizards of the Coast product identity and not in the SRD, so it isn't
+used.
 
 > This work includes material taken from the System Reference Document 5.1 ("SRD 5.1") by Wizards of the
 > Coast LLC and available at https://dnd.wizards.com/resources/systems-reference-document. The SRD 5.1 is
@@ -56,8 +86,14 @@ affiliated with Lexaloffle.
 
 - All sprites are original 8×8 pixel art, defined in code in `src/Pixel8.Desktop/Rendering/Sprites.cs`.
 - The 3×5 pixel font in `src/Pixel8.Desktop/Rendering/TinyFont.cs` is original.
-- There is no audio yet. When sound or a third-party font or sprite sheet is added, its source and licence
-  must be recorded here in the same change.
+- All sound is synthesised in code; there are no audio files. The sound effects (`src/Pixel8.Desktop/Fx/Sfx.cs`)
+  and the music (`data/music/*.mml`, rendered by `src/Pixel8.Core/Audio`) are original compositions, written
+  for Pixel8 with Claude's assistance. The synth imitates the general sound of 1980s console chips (pulse,
+  triangle and noise channels); it uses no code, samples or music from any console, game or other work.
+- `tools/music/` is a developer-only Python preview script. It uses NumPy and SciPy (BSD licences) at
+  development time, and it doesn't ship with the game.
+- When a third-party font, sprite sheet or sound is added, its source and licence must be recorded here in the
+  same change.
 
 ## Inspirations
 

@@ -1,0 +1,746 @@
+{
+  "_comment": "Gear (round 10). Names are SRD 5.1 magic items and generic equipment (CC BY 4.0); stats are game-side. slot: Weapon | Armor | OffHand | Trinket. Weapons: damage die + STR (or the better of STR/DEX if finesse) + magic; twoHanded blocks the off-hand. Armor: baseAc + DEX by armor kind (Cloth/Light all, Medium max 2, Heavy none) + magic; Shield = +2 + magic. Flat bonuses: ac, attack, damageBonus, spellDc, saves, maxHp, initiative, fightLuck, rearm, startBlock. tags = who may use it (heroes.json proficiencies); trinkets suit anyone. passive (rares): onHit / onCrit (dice, damageType), poisonOnHit (amount, rounds), regen (amount), bracers (amount). cursed: comes off only at a campfire. loot: false = event-only. price 0 = balance.json gear.prices by rarity. Round 11: 'ranged' weapons (bows, crossbows) use DEX for attack and damage; new off-hand tags instrument (Bard), druidic (Druid), holy (Cleric, Paladin).",
+  "gear": [
+    {
+      "id": "dagger",
+      "name": "Dagger",
+      "slot": "Weapon",
+      "rarity": "Common",
+      "damage": "1d4",
+      "tags": [
+        "simple",
+        "finesse",
+        "wizard-weapon"
+      ],
+      "text": "Finesse. Light and quick.",
+      "finesse": true,
+      "fx": "stab"
+    },
+    {
+      "id": "quarterstaff",
+      "name": "Quarterstaff",
+      "slot": "Weapon",
+      "rarity": "Common",
+      "damage": "1d6",
+      "tags": [
+        "simple",
+        "wizard-weapon"
+      ],
+      "text": "A sturdy staff.",
+      "fx": "smash"
+    },
+    {
+      "id": "mace",
+      "name": "Mace",
+      "slot": "Weapon",
+      "rarity": "Common",
+      "damage": "1d6",
+      "tags": [
+        "simple"
+      ],
+      "text": "Simple and solid.",
+      "fx": "smash"
+    },
+    {
+      "id": "shortsword",
+      "name": "Shortsword",
+      "slot": "Weapon",
+      "rarity": "Common",
+      "damage": "1d6",
+      "tags": [
+        "martial",
+        "finesse"
+      ],
+      "text": "Finesse.",
+      "finesse": true,
+      "fx": "stab"
+    },
+    {
+      "id": "rapier",
+      "name": "Rapier",
+      "slot": "Weapon",
+      "rarity": "Common",
+      "damage": "1d8",
+      "tags": [
+        "martial",
+        "finesse"
+      ],
+      "text": "Finesse.",
+      "finesse": true,
+      "fx": "stab"
+    },
+    {
+      "id": "longsword",
+      "name": "Longsword",
+      "slot": "Weapon",
+      "rarity": "Common",
+      "damage": "1d8",
+      "tags": [
+        "martial"
+      ],
+      "text": "A knight's blade.",
+      "fx": "slash"
+    },
+    {
+      "id": "battleaxe",
+      "name": "Battleaxe",
+      "slot": "Weapon",
+      "rarity": "Common",
+      "damage": "1d8",
+      "tags": [
+        "martial"
+      ],
+      "text": "Heavy chops.",
+      "fx": "slash"
+    },
+    {
+      "id": "greatsword",
+      "name": "Greatsword",
+      "slot": "Weapon",
+      "rarity": "Uncommon",
+      "damage": "2d6",
+      "tags": [
+        "martial"
+      ],
+      "text": "Two-handed: no off-hand.",
+      "twoHanded": true,
+      "fx": "slash"
+    },
+    {
+      "id": "longsword_1",
+      "name": "Longsword +1",
+      "slot": "Weapon",
+      "rarity": "Uncommon",
+      "damage": "1d8",
+      "tags": [
+        "martial"
+      ],
+      "text": "+1 to hit and damage.",
+      "magic": 1,
+      "fx": "slash"
+    },
+    {
+      "id": "rapier_1",
+      "name": "Rapier +1",
+      "slot": "Weapon",
+      "rarity": "Uncommon",
+      "damage": "1d8",
+      "tags": [
+        "martial",
+        "finesse"
+      ],
+      "text": "Finesse. +1 to hit and damage.",
+      "finesse": true,
+      "magic": 1,
+      "fx": "stab"
+    },
+    {
+      "id": "quarterstaff_1",
+      "name": "Quarterstaff +1",
+      "slot": "Weapon",
+      "rarity": "Uncommon",
+      "damage": "1d6",
+      "tags": [
+        "simple",
+        "wizard-weapon"
+      ],
+      "text": "+1 to hit and damage.",
+      "magic": 1,
+      "fx": "smash"
+    },
+    {
+      "id": "flame_tongue",
+      "name": "Flame Tongue",
+      "slot": "Weapon",
+      "rarity": "Rare",
+      "damage": "1d8",
+      "tags": [
+        "martial"
+      ],
+      "text": "Every hit adds 1d6 fire.",
+      "passive": {
+        "type": "onHit",
+        "dice": "1d6",
+        "damageType": "fire"
+      },
+      "fx": "fire"
+    },
+    {
+      "id": "dagger_of_venom",
+      "name": "Dagger of Venom",
+      "slot": "Weapon",
+      "rarity": "Rare",
+      "damage": "1d4",
+      "tags": [
+        "simple",
+        "finesse",
+        "wizard-weapon"
+      ],
+      "text": "Finesse, +1. Hits poison (2 for 2 turns).",
+      "finesse": true,
+      "magic": 1,
+      "passive": {
+        "type": "poisonOnHit",
+        "amount": 2,
+        "rounds": 2
+      },
+      "fx": "stab"
+    },
+    {
+      "id": "vicious_rapier",
+      "name": "Vicious Rapier",
+      "slot": "Weapon",
+      "rarity": "Rare",
+      "damage": "1d8",
+      "tags": [
+        "martial",
+        "finesse"
+      ],
+      "text": "Finesse. Crits add 2d6.",
+      "finesse": true,
+      "passive": {
+        "type": "onCrit",
+        "dice": "2d6",
+        "damageType": "weapon"
+      },
+      "fx": "stab"
+    },
+    {
+      "id": "staff_of_withering",
+      "name": "Staff of Withering",
+      "slot": "Weapon",
+      "rarity": "Rare",
+      "damage": "1d6",
+      "tags": [
+        "simple",
+        "wizard-weapon"
+      ],
+      "text": "+1. Every hit adds 1d6 necrotic.",
+      "magic": 1,
+      "passive": {
+        "type": "onHit",
+        "dice": "1d6",
+        "damageType": "necrotic"
+      },
+      "fx": "smash"
+    },
+    {
+      "id": "mace_of_disruption",
+      "name": "Mace of Disruption",
+      "slot": "Weapon",
+      "rarity": "Rare",
+      "damage": "1d6",
+      "tags": [
+        "simple"
+      ],
+      "text": "+1. Every hit adds 1d6 radiant.",
+      "magic": 1,
+      "passive": {
+        "type": "onHit",
+        "dice": "1d6",
+        "damageType": "radiant"
+      },
+      "fx": "radiant"
+    },
+    {
+      "id": "berserker_axe",
+      "name": "Berserker Axe",
+      "slot": "Weapon",
+      "rarity": "Rare",
+      "damage": "1d8",
+      "tags": [
+        "martial"
+      ],
+      "text": "+2. CURSED: -4 max HP; only comes off at a campfire.",
+      "magic": 2,
+      "maxHp": -4,
+      "cursed": true,
+      "loot": false,
+      "fx": "slash"
+    },
+    {
+      "id": "longbow",
+      "name": "Longbow",
+      "slot": "Weapon",
+      "rarity": "Common",
+      "text": "Two-handed. Ranged: uses DEX.",
+      "tags": [
+        "ranged",
+        "martial"
+      ],
+      "damage": "1d8",
+      "ranged": true,
+      "twoHanded": true,
+      "fx": "arrow"
+    },
+    {
+      "id": "shortbow",
+      "name": "Shortbow",
+      "slot": "Weapon",
+      "rarity": "Common",
+      "text": "Two-handed. Ranged: uses DEX.",
+      "tags": [
+        "ranged",
+        "simple"
+      ],
+      "damage": "1d6",
+      "ranged": true,
+      "twoHanded": true,
+      "fx": "arrow"
+    },
+    {
+      "id": "light_crossbow",
+      "name": "Light Crossbow",
+      "slot": "Weapon",
+      "rarity": "Common",
+      "text": "Two-handed. Ranged: uses DEX. +1 to hit.",
+      "tags": [
+        "ranged",
+        "simple"
+      ],
+      "damage": "1d8",
+      "ranged": true,
+      "twoHanded": true,
+      "attack": 1,
+      "fx": "arrow",
+      "price": 40
+    },
+    {
+      "id": "longbow_1",
+      "name": "Longbow +1",
+      "slot": "Weapon",
+      "rarity": "Uncommon",
+      "text": "Two-handed. Ranged: uses DEX.",
+      "tags": [
+        "ranged",
+        "martial"
+      ],
+      "damage": "1d8",
+      "ranged": true,
+      "twoHanded": true,
+      "magic": 1,
+      "fx": "arrow"
+    },
+    {
+      "id": "oathbow",
+      "name": "Oathbow",
+      "slot": "Weapon",
+      "rarity": "Rare",
+      "text": "Two-handed. Ranged: uses DEX. Each hit: +1d6.",
+      "tags": [
+        "ranged",
+        "martial"
+      ],
+      "damage": "1d8",
+      "ranged": true,
+      "twoHanded": true,
+      "passive": {
+        "type": "onHit",
+        "dice": "1d6",
+        "damageType": "weapon"
+      },
+      "fx": "arrow"
+    },
+    {
+      "id": "robes",
+      "name": "Robes",
+      "slot": "Armor",
+      "rarity": "Common",
+      "armor": "Cloth",
+      "baseAc": 10,
+      "tags": [
+        "cloth"
+      ],
+      "text": "AC 10 + DEX. +1 to saves.",
+      "saves": 1
+    },
+    {
+      "id": "leather",
+      "name": "Leather Armor",
+      "slot": "Armor",
+      "rarity": "Common",
+      "armor": "Light",
+      "baseAc": 11,
+      "tags": [
+        "light-armor"
+      ],
+      "text": "AC 11 + DEX."
+    },
+    {
+      "id": "studded_leather",
+      "name": "Studded Leather",
+      "slot": "Armor",
+      "rarity": "Common",
+      "armor": "Light",
+      "baseAc": 12,
+      "tags": [
+        "light-armor"
+      ],
+      "text": "AC 12 + DEX."
+    },
+    {
+      "id": "scale_mail",
+      "name": "Scale Mail",
+      "slot": "Armor",
+      "rarity": "Common",
+      "armor": "Medium",
+      "baseAc": 14,
+      "tags": [
+        "medium-armor"
+      ],
+      "text": "AC 14 + DEX (max 2)."
+    },
+    {
+      "id": "chain_mail",
+      "name": "Chain Mail",
+      "slot": "Armor",
+      "rarity": "Common",
+      "armor": "Heavy",
+      "baseAc": 16,
+      "tags": [
+        "heavy-armor"
+      ],
+      "text": "AC 16."
+    },
+    {
+      "id": "studded_leather_1",
+      "name": "Studded Leather +1",
+      "slot": "Armor",
+      "rarity": "Uncommon",
+      "armor": "Light",
+      "baseAc": 12,
+      "tags": [
+        "light-armor"
+      ],
+      "text": "AC 13 + DEX.",
+      "magic": 1
+    },
+    {
+      "id": "breastplate_1",
+      "name": "Breastplate +1",
+      "slot": "Armor",
+      "rarity": "Uncommon",
+      "armor": "Medium",
+      "baseAc": 14,
+      "tags": [
+        "medium-armor"
+      ],
+      "text": "AC 15 + DEX (max 2).",
+      "magic": 1
+    },
+    {
+      "id": "mithral_half_plate",
+      "name": "Mithral Half Plate",
+      "slot": "Armor",
+      "rarity": "Uncommon",
+      "armor": "Medium",
+      "baseAc": 15,
+      "tags": [
+        "medium-armor"
+      ],
+      "text": "AC 15 + DEX (max 2)."
+    },
+    {
+      "id": "plate",
+      "name": "Plate Armor",
+      "slot": "Armor",
+      "rarity": "Uncommon",
+      "armor": "Heavy",
+      "baseAc": 18,
+      "tags": [
+        "heavy-armor"
+      ],
+      "text": "AC 18."
+    },
+    {
+      "id": "elven_chain",
+      "name": "Elven Chain",
+      "slot": "Armor",
+      "rarity": "Rare",
+      "armor": "Light",
+      "baseAc": 13,
+      "tags": [
+        "light-armor",
+        "medium-armor"
+      ],
+      "text": "AC 14 + DEX. Light as silk.",
+      "magic": 1
+    },
+    {
+      "id": "robe_of_eyes",
+      "name": "Robe of Eyes",
+      "slot": "Armor",
+      "rarity": "Rare",
+      "armor": "Cloth",
+      "baseAc": 10,
+      "tags": [
+        "cloth"
+      ],
+      "text": "AC 11 + DEX. +1 saves, +5 initiative.",
+      "ac": 1,
+      "saves": 1,
+      "initiative": 5
+    },
+    {
+      "id": "breastplate_2",
+      "name": "Breastplate +2",
+      "slot": "Armor",
+      "rarity": "Rare",
+      "armor": "Medium",
+      "baseAc": 14,
+      "tags": [
+        "medium-armor"
+      ],
+      "text": "AC 16 + DEX (max 2).",
+      "magic": 2
+    },
+    {
+      "id": "shield",
+      "name": "Shield",
+      "slot": "OffHand",
+      "rarity": "Common",
+      "tags": [
+        "shield"
+      ],
+      "text": "+2 AC.",
+      "armor": "Shield"
+    },
+    {
+      "id": "offhand_dagger",
+      "name": "Off-hand Dagger",
+      "slot": "OffHand",
+      "rarity": "Common",
+      "tags": [
+        "offhand"
+      ],
+      "text": "+1 to weapon attacks.",
+      "attack": 1
+    },
+    {
+      "id": "crystal_orb",
+      "name": "Crystal Orb",
+      "slot": "OffHand",
+      "rarity": "Common",
+      "tags": [
+        "focus"
+      ],
+      "text": "Arcane focus. Start each fight with 2 Block.",
+      "startBlock": 2
+    },
+    {
+      "id": "shield_1",
+      "name": "Shield +1",
+      "slot": "OffHand",
+      "rarity": "Uncommon",
+      "tags": [
+        "shield"
+      ],
+      "text": "+3 AC.",
+      "armor": "Shield",
+      "magic": 1
+    },
+    {
+      "id": "wand_of_the_war_mage",
+      "name": "Wand of the War Mage +1",
+      "slot": "OffHand",
+      "rarity": "Uncommon",
+      "tags": [
+        "focus"
+      ],
+      "text": "+1 spell attack and spell DC.",
+      "spellDc": 1
+    },
+    {
+      "id": "shield_2",
+      "name": "Shield +2",
+      "slot": "OffHand",
+      "rarity": "Rare",
+      "tags": [
+        "shield"
+      ],
+      "text": "+4 AC.",
+      "armor": "Shield",
+      "magic": 2
+    },
+    {
+      "id": "sentinel_shield",
+      "name": "Sentinel Shield",
+      "slot": "OffHand",
+      "rarity": "Rare",
+      "tags": [
+        "shield"
+      ],
+      "text": "+2 AC. +5 initiative, +1 saves.",
+      "armor": "Shield",
+      "initiative": 5,
+      "saves": 1
+    },
+    {
+      "id": "lute",
+      "name": "Lute",
+      "slot": "OffHand",
+      "rarity": "Common",
+      "text": "A bard's instrument. No bonus, but it's yours.",
+      "tags": [
+        "instrument"
+      ]
+    },
+    {
+      "id": "fine_lute",
+      "name": "Fine Lute",
+      "slot": "OffHand",
+      "rarity": "Uncommon",
+      "text": "A masterwork instrument. +1 spell DC.",
+      "tags": [
+        "instrument"
+      ],
+      "spellDc": 1
+    },
+    {
+      "id": "silver_harp",
+      "name": "Silver Harp",
+      "slot": "OffHand",
+      "rarity": "Rare",
+      "text": "A harp strung with silver. +2 spell DC, +1 saves.",
+      "tags": [
+        "instrument"
+      ],
+      "spellDc": 2,
+      "saves": 1
+    },
+    {
+      "id": "druidic_focus",
+      "name": "Druidic Focus",
+      "slot": "OffHand",
+      "rarity": "Common",
+      "text": "A sprig of mistletoe. +1 saves.",
+      "tags": [
+        "druidic"
+      ],
+      "saves": 1
+    },
+    {
+      "id": "woodland_totem",
+      "name": "Totem of the Woodlands",
+      "slot": "OffHand",
+      "rarity": "Uncommon",
+      "text": "Druidic focus. +1 spell DC, +2 max HP.",
+      "tags": [
+        "druidic"
+      ],
+      "spellDc": 1,
+      "maxHp": 2
+    },
+    {
+      "id": "holy_symbol",
+      "name": "Holy Symbol",
+      "slot": "OffHand",
+      "rarity": "Common",
+      "text": "An amulet or emblem. 2 Block on your first turn.",
+      "tags": [
+        "holy"
+      ],
+      "startBlock": 2
+    },
+    {
+      "id": "reliquary",
+      "name": "Reliquary",
+      "slot": "OffHand",
+      "rarity": "Uncommon",
+      "text": "Holy symbol. +1 spell DC, +1 saves.",
+      "tags": [
+        "holy"
+      ],
+      "spellDc": 1,
+      "saves": 1
+    },
+    {
+      "id": "bone_charm",
+      "name": "Bone Charm",
+      "slot": "Trinket",
+      "rarity": "Common",
+      "text": "+3 max HP.",
+      "maxHp": 3
+    },
+    {
+      "id": "rabbit_foot",
+      "name": "Lucky Rabbit's Foot",
+      "slot": "Trinket",
+      "rarity": "Common",
+      "text": "+3 initiative.",
+      "initiative": 3
+    },
+    {
+      "id": "cloak_of_protection",
+      "name": "Cloak of Protection",
+      "slot": "Trinket",
+      "rarity": "Uncommon",
+      "text": "+1 AC, +1 saves.",
+      "ac": 1,
+      "saves": 1
+    },
+    {
+      "id": "gauntlets_of_ogre_power",
+      "name": "Gauntlets of Ogre Power",
+      "slot": "Trinket",
+      "rarity": "Uncommon",
+      "text": "+2 weapon damage.",
+      "damageBonus": 2
+    },
+    {
+      "id": "stone_of_good_luck",
+      "name": "Stone of Good Luck",
+      "slot": "Trinket",
+      "rarity": "Uncommon",
+      "text": "+1 Luck every fight.",
+      "fightLuck": 1
+    },
+    {
+      "id": "pearl_of_power",
+      "name": "Pearl of Power",
+      "slot": "Trinket",
+      "rarity": "Uncommon",
+      "text": "Rearm takes 1 more card.",
+      "rearm": 1
+    },
+    {
+      "id": "ring_of_protection",
+      "name": "Ring of Protection",
+      "slot": "Trinket",
+      "rarity": "Rare",
+      "text": "+2 AC, +1 saves.",
+      "ac": 2,
+      "saves": 1
+    },
+    {
+      "id": "amulet_of_health",
+      "name": "Amulet of Health",
+      "slot": "Trinket",
+      "rarity": "Rare",
+      "text": "+8 max HP.",
+      "maxHp": 8
+    },
+    {
+      "id": "ring_of_regeneration",
+      "name": "Ring of Regeneration",
+      "slot": "Trinket",
+      "rarity": "Rare",
+      "text": "Heal 2 at the start of each of your turns.",
+      "passive": {
+        "type": "regen",
+        "amount": 2
+      }
+    },
+    {
+      "id": "bracers_of_defense",
+      "name": "Bracers of Defense",
+      "slot": "Trinket",
+      "rarity": "Rare",
+      "text": "+2 AC with no armor (or robes) and no shield.",
+      "passive": {
+        "type": "bracers",
+        "amount": 2
+      }
+    }
+  ]
+}

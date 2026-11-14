@@ -1,11 +1,12 @@
 using Pixel8.Core.Cards;
 using Pixel8.Core.Content;
+using Pixel8.Core.Gear;
 using Pixel8.Core.Heroes;
 using Pixel8.Core.Randomness;
 
 namespace Pixel8.Core.Rewards;
 
-public enum ShopKind { Card, Item, RemoveCard, UpgradeCard }
+public enum ShopKind { Card, Item, RemoveCard, UpgradeCard, Gear }
 
 /// <summary>One thing on the merchant's table. Cards are for a specific hero; services are used once per visit.</summary>
 public sealed class ShopOffer
@@ -15,12 +16,15 @@ public sealed class ShopOffer
     public Hero? Hero { get; init; }
     public CardDef? Card { get; init; }
     public ItemDef? Item { get; init; }
+    /// <summary>Round 10: a piece of gear for sale.</summary>
+    public GearInstance? Gear { get; init; }
     public bool Sold { get; set; }
 
     public string Name => Kind switch
     {
         ShopKind.Card => Card!.Name,
         ShopKind.Item => Item!.Name,
+        ShopKind.Gear => Gear!.Name,
         ShopKind.RemoveCard => "Remove a card",
         _ => "Upgrade a card"
     };
@@ -62,6 +66,20 @@ public sealed class Merchant
         return new Merchant(offers);
     }
 
+    /// <summary>Round 10: gear for sale (rolled by Run.CreateMerchant).</summary>
+    public void AddGear(IEnumerable<(GearInstance Gear, int Price)> stock)
+    {
+        foreach (var (gear, price) in stock)
+            _offers.Add(new ShopOffer { Kind = ShopKind.Gear, Gear = gear, Price = Math.Max(1, price) });
+    }
+
+    /// <summary>Sells a piece of gear from the pack for <paramref name="price"/> gold (Run.SellPrice).</summary>
+    public static void Sell(Party party, GearInstance gear, int price)
+    {
+        if (!party.Pack.Remove(gear)) throw new InvalidOperationException($"{gear.Name} isn't in the pack.");
+        party.Gold += Math.Max(0, price);
+    }
+
     /// <summary>Rebuilds a merchant from saved offers (see SaveGame).</summary>
     public static Merchant Restore(IEnumerable<ShopOffer> offers) => new(offers.ToList());
 
@@ -79,6 +97,10 @@ public sealed class Merchant
                 break;
             case ShopKind.Item:
                 party.Bag.Add(offer.Item!.Id);
+                break;
+            case ShopKind.Gear:
+                if (party.PackFull) throw new InvalidOperationException("The pack is full.");
+                party.Pack.Add(offer.Gear!);
                 break;
             default:
                 throw new InvalidOperationException("Use RemoveCard / UpgradeCard for services.");
@@ -100,6 +122,7 @@ public sealed class Merchant
         Require(party, offer, ShopKind.UpgradeCard);
         if (!card.CanUpgrade) throw new InvalidOperationException($"{card} can't be upgraded.");
         card.Upgraded = true;
+        party.UpgradesMade++;
         Pay(party, offer);
     }
 
@@ -113,7 +136,7 @@ public sealed class Merchant
 
     private static void Pay(Party party, ShopOffer offer)
     {
-        party.Gold -= offer.Price;
+        party.Spend(offer.Price);
         offer.Sold = true;
     }
 }

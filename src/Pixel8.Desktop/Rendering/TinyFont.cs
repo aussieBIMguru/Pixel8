@@ -47,6 +47,8 @@ public static class TinyFont
         ['#'] = new byte[] { 5, 7, 5, 7, 5 }, ['"'] = new byte[] { 5, 5, 0, 0, 0 },
         [';'] = new byte[] { 0, 2, 0, 2, 4 }, ['_'] = new byte[] { 0, 0, 0, 0, 7 },
         ['|'] = new byte[] { 2, 2, 2, 2, 2 },
+        // Round 11: apostrophe (ADVENTURER'S JOURNAL, THAT'S NO CHEST) and caret (scroll hints).
+        ['\''] = new byte[] { 2, 2, 0, 0, 0 }, ['^'] = new byte[] { 2, 5, 0, 0, 0 },
     };
 
     public static int Measure(string text) => text.Length * Advance - 1;

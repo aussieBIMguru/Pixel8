@@ -5,14 +5,28 @@ using Pixel8.Core.Dungeon;
 using Pixel8.Core.Heroes;
 using Pixel8.Core.Randomness;
 using Pixel8.Core.Runs;
+using Pixel8.Sim;
 
 // Usage:
 //   dotnet run --project tools/Pixel8.Sim -- [seed] [dungeons-to-sample]   odds table, ASCII dungeon, generator stats
 //   dotnet run --project tools/Pixel8.Sim -- fight [seed] [fights] [difficulty]   one logged fight, win rates, timed-reaction skill table, Depth 1 clear rate per difficulty
+//   dotnet run -c Release --project tools/Pixel8.Sim -- run [options]   round 9: whole runs on real dungeons, every difficulty, with targets
+//       --runs 400            runs per difficulty (and per sweep combination)
+//       --seed 1              first seed
+//       --difficulty all      or easy / normal / hard
+//       --party mixed         mixed = 12 three-class parties in turn (each of the 8 classes in several); or e.g. fighter,rogue,wizard
+//       --set path=value      a fixed data override, e.g. --set enemies.young_green_dragon.hpScale=0.5
+//       --sweep path=a,b,c    try each value (several --sweep flags = every combination), e.g. --sweep acCapByDepth=14/15/16,13/14/15
+//       --threads 0           0 = all cores
 // The AutoPlayer spends Luck on failed attacks and grades timed reactions with AutoPlayer.TimingSkill.
 if (args.Length > 0 && args[0].Equals("fight", StringComparison.OrdinalIgnoreCase))
 {
     RunFights(args.Length > 1 ? ulong.Parse(args[1]) : 1, args.Length > 2 ? int.Parse(args[2]) : 2000, args.Length > 3 ? args[3] : null);
+    return;
+}
+if (args.Length > 0 && args[0].Equals("run", StringComparison.OrdinalIgnoreCase))
+{
+    RunSim.Execute(args[1..]);
     return;
 }
 

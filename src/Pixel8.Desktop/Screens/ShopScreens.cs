@@ -252,8 +252,12 @@ public sealed class CampfireScreen : IScreen
 /// </summary>
 public sealed class MerchantScreen : IScreen
 {
-    private const int CardW = 62, CardH = 46, CardY = 16, ItemY = 68, ServiceY = 84, DetailY = 100;
+    private const int CardW = 62, CardH = 46, CardY = 16, ItemY = 66, GearY = 79, ServiceY = 92, DetailY = 106;
     private static readonly Rectangle LeaveButton = new(88, 133, 80, 10);
+    /// <summary>Round 10: sell gear from the pack for half price.</summary>
+    private static readonly Rectangle SellButton = new(172, ServiceY, 80, 11);
+    private bool _selling;
+    private static Rectangle SellRect(int i) => new(8 + i % 2 * 122, 22 + i / 2 * 13, 118, 11);
 
     private readonly Run _run;
     private readonly Merchant _merchant;
@@ -287,14 +291,48 @@ public sealed class MerchantScreen : IScreen
         for (int i = 0; i < items.Count; i++)
             yield return (items[i], new Rectangle((256 - itemsW) / 2 + i * 64, ItemY, 60, 11));
 
+        var gear = Of(ShopKind.Gear);
+        for (int i = 0; i < gear.Count; i++)
+            yield return (gear[i], new Rectangle(4 + i * 84, GearY, 80, 11));
+
         var services = Of(ShopKind.RemoveCard).Concat(Of(ShopKind.UpgradeCard)).ToList();
         for (int i = 0; i < services.Count; i++)
-            yield return (services[i], new Rectangle(24 + i * 108, ServiceY, 100, 11));
+            yield return (services[i], new Rectangle(4 + i * 84, ServiceY, 80, 11));
     }
 
     public void Update(float dt, Input input)
     {
         _pointer = input.Pointer;
+
+        if (_selling)
+        {
+            if (input.Pressed(Keys.Escape) || input.RightClick || input.Clicked(LeaveButton))
+            {
+                _selling = false;
+                Sfx.Play("back");
+                return;
+            }
+            var pack = _run.Party.Pack;
+            for (int i = 0; i < pack.Count; i++)
+                if (input.Clicked(SellRect(i)))
+                {
+                    var g = pack[i];
+                    int price = _run.SellPrice(g);
+                    Merchant.Sell(_run.Party, g, price);
+                    _message = $"Sold {g.Name} for {price} gold.";
+                    Sfx.Play("coins");
+                    if (pack.Count == 0) _selling = false;
+                    return;
+                }
+            return;
+        }
+
+        if (input.Clicked(SellButton))
+        {
+            if (_run.Party.Pack.Count == 0) { _message = "THE PACK IS EMPTY: NOTHING TO SELL."; Sfx.Play("deny"); }
+            else { _selling = true; Sfx.Play("select"); }
+            return;
+        }
 
         if (_picker is not null)
         {
@@ -317,7 +355,7 @@ public sealed class MerchantScreen : IScreen
                     _merchant.UpgradeCard(_run.Party, _service, pick.Card);
                     _message = $"{pick.Hero.Name}'s {pick.Card.BaseDef.Name} is upgraded.";
                 }
-                Sfx.Play("coin");
+                Sfx.Play("buy");
                 _picker = null;
                 _service = null;
             }
@@ -326,7 +364,7 @@ public sealed class MerchantScreen : IScreen
 
         if (input.Pressed(Keys.Escape) || input.Clicked(LeaveButton))
         {
-            Sfx.Play("select");
+            Sfx.Play("back");
             _onDone();
             return;
         }
@@ -354,12 +392,18 @@ public sealed class MerchantScreen : IScreen
                 if (offer.Hero!.IsDead) { _message = $"{offer.Hero.Name} can't use it now."; Sfx.Play("deny"); return; }
                 _merchant.Buy(_run.Party, offer, _run.LootRng);
                 _message = $"{offer.Card!.Name} joins {offer.Hero.Name}'s deck.";
-                Sfx.Play("coin");
+                Sfx.Play("buy");
                 break;
             case ShopKind.Item:
                 _merchant.Buy(_run.Party, offer, _run.LootRng);
                 _message = $"{offer.Item!.Name} goes in the bag: B in combat, P on the map.";
-                Sfx.Play("coin");
+                Sfx.Play("buy");
+                break;
+            case ShopKind.Gear:
+                if (_run.Party.PackFull) { _message = "THE PACK IS FULL. SELL OR DROP SOMETHING FIRST."; Sfx.Play("deny"); return; }
+                _merchant.Buy(_run.Party, offer, _run.LootRng);
+                _message = $"{offer.Gear!.Name} goes in the pack. Press G on the map to equip it.";
+                Sfx.Play("buy");
                 break;
             case ShopKind.RemoveCard:
                 _service = offer;
@@ -377,6 +421,20 @@ public sealed class MerchantScreen : IScreen
 
     public void Draw(SpriteBatch b, PixelCanvas c, SpriteSheet s)
     {
+        if (_selling)
+        {
+            Gui.TextCenter(b, c, "SELL GEAR (HALF PRICE)", 128, 5, Palette.Peach, shadow: true);
+            Gui.TextRight(b, c, $"GOLD {_run.Party.Gold}", 252, 5, Palette.Yellow, shadow: true);
+            var pack = _run.Party.Pack;
+            for (int i = 0; i < pack.Count; i++)
+            {
+                var g = pack[i];
+                var r = SellRect(i);
+                Gui.IconButton(b, c, s, r, GearIcons.For(g.Def), $"{Gui.Clip(g.Name.ToUpperInvariant(), 20)} {_run.SellPrice(g)}G", r.Contains(_pointer), true, GearText.RarityColor(g.EffectiveRarity));
+            }
+            Gui.Button(b, c, LeaveButton, "ESC  BACK", LeaveButton.Contains(_pointer));
+            return;
+        }
         if (_picker is not null)
         {
             _picker.Draw(b, c, s);
@@ -398,9 +456,18 @@ public sealed class MerchantScreen : IScreen
             else
             {
                 string label = offer.Sold ? "SOLD" : $"{ShortName(offer)} {offer.Price}G";
-                Gui.Button(b, c, r, label, hover && !offer.Sold, !offer.Sold && afford, offer.Kind == ShopKind.Item ? Palette.Green : Palette.Pink);
+                var accent = offer.Kind switch
+                {
+                    ShopKind.Item => Palette.Green,
+                    ShopKind.Gear => GearText.RarityColor(offer.Gear!.EffectiveRarity),
+                    _ => Palette.Pink
+                };
+                if (offer.Kind == ShopKind.Gear && !offer.Sold)
+                    Gui.IconButton(b, c, s, r, GearIcons.For(offer.Gear!.Def), label, hover, afford, accent);
+                else Gui.Button(b, c, r, label, hover && !offer.Sold, !offer.Sold && afford, accent);
             }
         }
+        Gui.Button(b, c, SellButton, "SELL GEAR", SellButton.Contains(_pointer), _run.Party.Pack.Count > 0, Palette.Yellow);
 
         string detail = _message.Length > 0 && _hover is null ? _message : Detail(_hover);
         int y = DetailY;
@@ -416,12 +483,14 @@ public sealed class MerchantScreen : IScreen
     {
         ShopKind.Item => Gui.Clip(offer.Item!.Name.Replace("Potion of ", "").ToUpperInvariant(), 8),
         ShopKind.RemoveCard => "REMOVE A CARD",
+        ShopKind.Gear => Gui.Clip(offer.Gear!.Name.ToUpperInvariant(), 11),
         _ => "UPGRADE A CARD"
     };
 
-    private static string Detail(ShopOffer? offer) => offer switch
+    private string Detail(ShopOffer? offer) => offer switch
     {
         null => "",
+        { Kind: ShopKind.Gear } => $"{offer.Gear!.Name} ({offer.Gear.EffectiveRarity} {GearText.SlotName(offer.Gear.Def.Slot)}): {GearText.Stats(offer.Gear)}. {offer.Gear.Def.Text} For: {GearText.Users(_run, offer.Gear.Def)}.",
         { Kind: ShopKind.Card } => $"{offer.Card!.Name} for {offer.Hero!.Name}: {offer.Card.Text}",
         { Kind: ShopKind.Item } => $"{offer.Item!.Name}: {offer.Item.Text} Kept in the bag.",
         { Kind: ShopKind.RemoveCard } => "Take one card out of a hero's deck for good. Decks never reshuffle, so a thin deck draws its best cards more often.",
@@ -442,6 +511,7 @@ public sealed class MerchantScreen : IScreen
         TinyFont.Draw(b, c, (index + 1).ToString(), rr.X + 2, rr.Y + 2, Palette.LightGrey);
         string sprite = s.Has("hero." + offer.Hero!.Class.Id) ? "hero." + offer.Hero.Class.Id : "hero";
         s.Draw(b, sprite, rr.Right - 10, rr.Y + 2);
+        s.Draw(b, CardIcons.For(card), rr.Center.X - SpriteSheet.Size / 2, rr.Y + 2, offer.Sold ? Palette.DarkGrey : null);
 
         int y = rr.Y + 12;
         foreach (string line in Gui.Wrap(card.Name.ToUpperInvariant(), 14).Take(2))

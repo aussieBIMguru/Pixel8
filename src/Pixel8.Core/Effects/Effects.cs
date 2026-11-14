@@ -16,6 +16,8 @@ public static class TargetKey
     public const string AllEnemies = "allEnemies";
     /// <summary>No formation in the MVP: a random other enemy.</summary>
     public const string Adjacent = "adjacent";
+    /// <summary>Two different random living enemies (one if only one is left). Round 8 multi-target cards.</summary>
+    public const string TwoRandom = "random2";
     /// <summary>The effect doesn't touch a creature (FixNextDie, ModifyIncomingRoll).</summary>
     public const string None = "none";
 }
@@ -82,7 +84,16 @@ public sealed class EffectRegistry
         .Register("Apply", new ApplyEffect())
         .Register("FixNextDie", new FixNextDieEffect())
         .Register("ModifyIncomingRoll", new ModifyIncomingRollEffect())
-        .Register("Stabilize", new StabilizeEffect());
+        .Register("Stabilize", new StabilizeEffect())
+        .Register("Poison", new PoisonEffect())
+        .Register("Draw", new DrawEffect())
+        // Round 11: new classes
+        .Register("Inspire", new InspireEffect())
+        .Register("Smite", new SmiteEffect())
+        .Register("WildShape", new WildShapeEffect())
+        .Register("HuntersMark", new HuntersMarkEffect())
+        .Register("LayOnHands", new LayOnHandsEffect())
+        .Register("TempHp", new TempHpEffect());
 }
 
 // ---------------------------------------------------------------------- built-in effects
@@ -95,9 +106,12 @@ public sealed class WeaponDamageEffect : IEffect
 
     public void Apply(EffectContext ctx)
     {
-        var dice = (ctx.Source is Hero h ? h.Weapon : ctx.DiceArg("dice", "1d4")).WithBonus(ctx.IntArg("bonus"));
+        // Round 11: a Druid in Wild Shape uses the beast's attack instead of their weapon.
+        var dice = (ctx.Source is Hero h ? ctx.Combat.WeaponOf(h).WithBonus(ctx.Combat.HeroDamageBonus) : ctx.DiceArg("dice", "1d4")).WithBonus(ctx.IntArg("bonus"));
         int amount = ctx.Combat.RollDamage(ctx.Source, ctx.Target, dice, ctx.Critical, type: "weapon");
         ctx.Combat.DealDamage(ctx.Source, ctx.Target, amount, "weapon");
+        if (ctx.Source is Hero hero && ctx.Target is not null && ctx.Combat.FormOf(hero) is null)
+            ctx.Combat.ApplyWeaponPassives(hero, ctx.Target, ctx.Critical);
     }
 }
 
@@ -109,7 +123,9 @@ public sealed class DamageEffect : IEffect
 
     public void Apply(EffectContext ctx)
     {
-        int amount = ctx.Combat.RollDamage(ctx.Source, ctx.Target, ctx.DiceArg("dice"), ctx.Critical, ctx.BoolArg("half"), ctx.Arg("type", "damage"));
+        var dice = ctx.DiceArg("dice");
+        if (ctx.Source is Hero) dice = dice.WithBonus(ctx.Combat.HeroDamageBonus);   // level scaling (round 8)
+        int amount = ctx.Combat.RollDamage(ctx.Source, ctx.Target, dice, ctx.Critical, ctx.BoolArg("half"), ctx.Arg("type", "damage"));
         ctx.Combat.DealDamage(ctx.Source, ctx.Target, amount, ctx.Arg("type", "damage"));
     }
 }
@@ -147,7 +163,7 @@ public sealed class HealEffect : IEffect
     public bool TargetsAllies => true;
 
     public void Apply(EffectContext ctx) =>
-        ctx.Combat.Heal(ctx.Target, ctx.DiceArg("dice").Roll(ctx.Combat.Rng));
+        ctx.Combat.Heal(ctx.Target, ctx.DiceArg("dice").Roll(ctx.Combat.Rng), ctx.Source);
 }
 
 /// <summary>args: cond, rounds.</summary>
@@ -178,9 +194,34 @@ public sealed class StabilizeEffect : IEffect
     public void Apply(EffectContext ctx)
     {
         if (ctx.Target is Hero { IsDowned: true })
-            ctx.Combat.Heal(ctx.Target, 1);
+            ctx.Combat.Heal(ctx.Target, 1, ctx.Source);
         else
             ctx.Combat.GainBlock(ctx.Target, ctx.IntArg("block", 3));
+    }
+}
+
+/// <summary>
+/// args: amount (damage at the start of each of the bearer's turns), rounds (how many turns). The target is Poisoned;
+/// re-applying keeps the longer duration and the bigger amount. Round 8.
+/// </summary>
+public sealed class PoisonEffect : IEffect
+{
+    public string DefaultTarget => TargetKey.Target;
+    public bool TargetsAllies => false;
+
+    public void Apply(EffectContext ctx) =>
+        ctx.Combat.ApplyPoison(ctx.Target, Math.Max(1, ctx.IntArg("amount", 2)), Math.Max(1, ctx.IntArg("rounds", 3)));
+}
+
+/// <summary>args: count (default 1). The hero draws cards (hand limit applies). Rare cards only (decks never reshuffle).</summary>
+public sealed class DrawEffect : IEffect
+{
+    public string DefaultTarget => TargetKey.Self;
+    public bool TargetsAllies => true;
+
+    public void Apply(EffectContext ctx)
+    {
+        if (ctx.Target is Hero h) ctx.Combat.DrawCards(h, Math.Max(1, ctx.IntArg("count", 1)));
     }
 }
 
@@ -191,4 +232,87 @@ public sealed class ModifyIncomingRollEffect : IEffect
     public bool TargetsAllies => false;
 
     public void Apply(EffectContext ctx) => ctx.Combat.AdjustIncomingTarget(ctx.IntArg("targetDelta"));
+}
+
+// ---------------------------------------------------------------------- round 11: new classes
+
+/// <summary>
+/// Bard. args: dice (default 1d6), count (default 1). The target holds that many Inspiration dice; each is spent
+/// automatically when it could turn one of their failed d20 rolls (attack or save) into a success.
+/// </summary>
+public sealed class InspireEffect : IEffect
+{
+    public string DefaultTarget => TargetKey.Target;
+    public bool TargetsAllies => true;
+
+    public void Apply(EffectContext ctx)
+    {
+        if (ctx.Target is Hero h)
+            ctx.Combat.Inspire(h, ctx.DiceArg("dice", "1d6"), Math.Max(1, ctx.IntArg("count", 1)));
+    }
+}
+
+/// <summary>Paladin. args: dice (default 2d8), undead (extra vs undead, default 1d8). The hero's next hit this fight smites.</summary>
+public sealed class SmiteEffect : IEffect
+{
+    public string DefaultTarget => TargetKey.Self;
+    public bool TargetsAllies => true;
+
+    public void Apply(EffectContext ctx)
+    {
+        if (ctx.Target is Hero h)
+            ctx.Combat.PrimeSmite(h, ctx.DiceArg("dice", "2d8"), ctx.DiceArg("undead", "1d8"));
+    }
+}
+
+/// <summary>
+/// Druid. args: form (sprite id, e.g. "wolf"), name, tempHp, dice (the beast's attack). The hero gains the temp HP and
+/// their Strike and weapon attacks become the beast's (with their spell attack bonus) until the temp HP is gone.
+/// </summary>
+public sealed class WildShapeEffect : IEffect
+{
+    public string DefaultTarget => TargetKey.Self;
+    public bool TargetsAllies => true;
+
+    public void Apply(EffectContext ctx)
+    {
+        if (ctx.Target is Hero h)
+            ctx.Combat.WildShape(h, new WildForm(ctx.Arg("form", "wolf"), ctx.Arg("name", "Wolf"),
+                ctx.DiceArg("dice", "2d4+2"), Math.Max(1, ctx.IntArg("tempHp", 10))));
+    }
+}
+
+/// <summary>Ranger. args: dice (default 1d6). The target is Hunted: the source's hits on it deal the extra dice. The mark moves when it dies.</summary>
+public sealed class HuntersMarkEffect : IEffect
+{
+    public string DefaultTarget => TargetKey.Target;
+    public bool TargetsAllies => false;
+
+    public void Apply(EffectContext ctx)
+    {
+        if (ctx.Source is Hero h)
+            ctx.Combat.Hunt(h, ctx.Target, ctx.DiceArg("dice", "1d6"));
+    }
+}
+
+/// <summary>Paladin. Heals the target from the hero's Lay on Hands pool (balance layOnHandsBase + per level); revives a Downed ally.</summary>
+public sealed class LayOnHandsEffect : IEffect
+{
+    public string DefaultTarget => TargetKey.Target;
+    public bool TargetsAllies => true;
+
+    public void Apply(EffectContext ctx)
+    {
+        if (ctx.Source is Hero h) ctx.Combat.LayOnHands(h, ctx.Target);
+    }
+}
+
+/// <summary>args: amount (dice or flat). Temporary hit points (they don't stack: the bigger value stays).</summary>
+public sealed class TempHpEffect : IEffect
+{
+    public string DefaultTarget => TargetKey.Self;
+    public bool TargetsAllies => true;
+
+    public void Apply(EffectContext ctx) =>
+        ctx.Combat.GainTempHp(ctx.Target, ctx.DiceArg("amount", "5").Roll(ctx.Combat.Rng));
 }

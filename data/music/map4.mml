@@ -1,0 +1,26 @@
+# Depth 4: the sunken halls, where the Hydra waits. C minor, rolling.
+title: Sunken Halls
+tempo: 96
+loop: yes
+
+# Bars: Cm Ab Eb G | Cm Ab Bb G | Fm Cm Ab G | Fm Ab G G
+A: @1 v10 l8
+A: o5 c4 e-4 g4 f e- | o5 c4. e- a-4 g4 | o5 g4 b-4 g f e-4 | o5 d2. r4
+A: o5 g4 o6 c4 o5 b- a- g4 | o5 a-4 o6 c4 e-4 d c | o6 d4 o5 b- a- f4 b-4 | o5 b2 g4 d4
+A: o5 a-4 f a- o6 c4 o5 a-4 | o5 g4 e- g o6 c2 | o6 c4 o5 b- a- e-4 a-4 | o5 g2 b4 d4
+A: o5 f4 a- o6 c f4 e- c | o5 e-4 a- o6 c e-4 c4 | o5 d4 g b o6 d4 o5 b4 | o5 g2 b2
+
+B: @0 v6 l8 o4
+B: [c e- g e-]2 [c e- a- e-]2 [e- g b- g]2 [d g b g]2
+B: [c e- g e-]2 [c e- a- e-]2 [d f b- f]2 [d g b g]2
+B: [c f a- f]2 [c e- g e-]2 [c e- a- e-]2 [d g b g]2
+B: [c f a- f]2 [c e- a- e-]2 [d g b g]2 [d g b g]2
+
+T: l8 o2
+T: [c>c<]4 [a->a-<]4 [e->e-<]4 [g>g<]4
+T: [c>c<]4 [a->a-<]4 [b->b-<]4 [g>g<]4
+T: [f>f<]4 [c>c<]4 [a->a-<]4 [g>g<]4
+T: [f>f<]4 [a->a-<]4 [g>g<]4 [g>g<]4
+
+N: v6 l8
+N: [k h s h k k s h]16

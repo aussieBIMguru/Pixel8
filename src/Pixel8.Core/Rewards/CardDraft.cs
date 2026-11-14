@@ -30,13 +30,23 @@ public sealed class CardDraft
         return new CardDraft(offers);
     }
 
-    /// <summary>One card from the hero's class pool plus neutral cards, weighted by rarity (draft and merchant).</summary>
-    public static CardDef? RollCardFor(Hero hero, ContentDb content, Rng rng, ISet<string>? exclude = null)
+    /// <summary>
+    /// One card from the hero's class pool plus neutral cards, weighted by rarity (draft and merchant).
+    /// With <paramref name="rarity"/>, only cards of that rarity (falling back to the whole pool if there are none).
+    /// </summary>
+    public static CardDef? RollCardFor(Hero hero, ContentDb content, Rng rng, ISet<string>? exclude = null, Rarity? rarity = null)
     {
-        var table = content.Cards.Values
+        var pool = content.Cards.Values
             .Where(c => c.ClassId.Equals(hero.Class.Id, StringComparison.OrdinalIgnoreCase)
                      || c.ClassId.Equals("neutral", StringComparison.OrdinalIgnoreCase))
             .Where(c => exclude is null || !exclude.Contains(c.Id))
+            .ToList();
+        if (rarity is { } r)
+        {
+            var exact = pool.Where(c => c.Rarity == r).OrderBy(c => c.Id, StringComparer.Ordinal).ToList();
+            if (exact.Count > 0) return rng.Pick(exact);
+        }
+        var table = pool
             .OrderBy(c => c.Id, StringComparer.Ordinal)
             .Select(c => (c, content.Balance.WeightOf(c.Rarity)))
             .Where(t => t.Item2 > 0)

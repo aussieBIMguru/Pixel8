@@ -1,5 +1,5 @@
 {
-  "_comment": "Card data, loaded by ContentDb. 'when': always | onHit | onCrit | onMiss. 'target': target | self | party | allEnemies | adjacent (no formation: a random other enemy). classId 'basic' = always-available actions. 'upgrade' (optional): text/effects that replace the base ones when a copy is upgraded (campfire or merchant); the card keeps its name with a '+'. WeaponDamage takes an optional 'bonus'. Class basic actions are classId 'basic' too, linked from heroes.json 'basicAction'; 'exhaust' on a basic = once per fight. 'spell': true makes an Attack roll the spell attack (spell DC - 8). 'short' labels small buttons. 'fx' picks the hit effect: slash, smash, stab, bite, arrow, bolt, fire, missile, radiant (cards without one use the hero's weaponFx or their damage type).",
+  "_comment": "Card data, loaded by ContentDb. 'when': always | onHit | onCrit | onMiss. 'target': target | self | party | allEnemies | adjacent (no formation: a random other enemy) | random2 (2 different random enemies; on a Save card each rolls its own save). Poison (amount, rounds): damage at the start of each of the bearer's turns. Draw (count): Rare cards only. classId 'basic' = always-available actions. 'upgrade' (optional): text/effects that replace the base ones when a copy is upgraded (campfire or merchant); the card keeps its name with a '+'. WeaponDamage takes an optional 'bonus'. Class basic actions are classId 'basic' too, linked from heroes.json 'basicAction'; 'exhaust' on a basic = once per fight. 'spell': true makes an Attack roll the spell attack (spell DC - 8). 'short' labels small buttons. 'fx' picks the hit effect: slash, smash, stab, bite, arrow, bolt, fire, missile, radiant, poison (cards without one use the hero's weaponFx or their damage type). Round 11: 'uses' on a basic = times per fight (Bardic Inspiration 3). New effects: Inspire (dice, count: Inspiration dice spent automatically on a failed d20 they can turn), Smite (dice, undead: the next hit), WildShape (form, name, tempHp, dice), HuntersMark (dice), LayOnHands (pool from balance), TempHp (amount). New conditions: Outlined (attacks against have advantage), Restrained (attacks against have advantage, its attacks disadvantage), Paralyzed / Charmed (loses its next turn). BonusDamage 'if' also takes target.Hurt and creature types (target.undead).",
   "cards": [
     {
       "id": "basic.strike",
@@ -112,6 +112,88 @@
           }
         }
       ]
+    },
+    {
+      "id": "basic.bardic_inspiration",
+      "name": "Bardic Inspiration",
+      "classId": "basic",
+      "speed": "Quick",
+      "check": "None",
+      "rarity": "Common",
+      "text": "Bard. Three times per fight: an ally gains a d6 Inspiration die, added to a failed roll when it can turn it into a success.",
+      "effects": [
+        {
+          "type": "Inspire",
+          "args": {
+            "dice": "1d6",
+            "target": "target"
+          }
+        }
+      ],
+      "short": "INSPIRE",
+      "uses": 3,
+      "fx": "song"
+    },
+    {
+      "id": "basic.hunters_mark",
+      "name": "Hunter's Mark",
+      "classId": "basic",
+      "speed": "Quick",
+      "check": "None",
+      "rarity": "Common",
+      "text": "Ranger. Once per fight: mark a foe. Your hits on it deal +1d6. The mark moves when it dies.",
+      "effects": [
+        {
+          "type": "HuntersMark",
+          "args": {
+            "dice": "1d6",
+            "target": "target"
+          }
+        }
+      ],
+      "short": "MARK",
+      "exhaust": true
+    },
+    {
+      "id": "basic.produce_flame",
+      "name": "Produce Flame",
+      "classId": "basic",
+      "speed": "Action",
+      "check": "Attack",
+      "rarity": "Common",
+      "text": "Druid. Spell attack: 1d8 fire.",
+      "effects": [
+        {
+          "type": "Damage",
+          "when": "onHit",
+          "args": {
+            "dice": "1d8",
+            "type": "fire"
+          }
+        }
+      ],
+      "short": "FLAME",
+      "spell": true,
+      "fx": "fire"
+    },
+    {
+      "id": "basic.lay_on_hands",
+      "name": "Lay on Hands",
+      "classId": "basic",
+      "speed": "Quick",
+      "check": "None",
+      "rarity": "Common",
+      "text": "Paladin. Heal an ally from a pool of 5 HP per fight (+1 per party level). Brings a Downed ally back up.",
+      "effects": [
+        {
+          "type": "LayOnHands",
+          "args": {
+            "target": "target"
+          }
+        }
+      ],
+      "short": "HANDS",
+      "fx": "heal"
     },
     {
       "id": "fighter.cleave",
@@ -512,6 +594,3268 @@
             "args": {
               "dice": "2d8+2",
               "type": "radiant"
+            }
+          }
+        ]
+      },
+      "fx": "radiant"
+    },
+    {
+      "id": "fighter.shield_bash",
+      "name": "Shield Bash",
+      "classId": "fighter",
+      "speed": "Action",
+      "check": "Attack",
+      "rarity": "Uncommon",
+      "text": "Attack. On hit, weapon damage and the target is Prone for 1 round.",
+      "effects": [
+        {
+          "type": "WeaponDamage",
+          "when": "onHit"
+        },
+        {
+          "type": "Apply",
+          "when": "onHit",
+          "args": {
+            "cond": "Prone",
+            "rounds": "1"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Attack with +2 damage. On hit, the target is Prone for 1 round.",
+        "effects": [
+          {
+            "type": "WeaponDamage",
+            "when": "onHit",
+            "args": {
+              "bonus": "2"
+            }
+          },
+          {
+            "type": "Apply",
+            "when": "onHit",
+            "args": {
+              "cond": "Prone",
+              "rounds": "1"
+            }
+          }
+        ]
+      },
+      "fx": "smash"
+    },
+    {
+      "id": "fighter.heavy_blow",
+      "name": "Heavy Blow",
+      "classId": "fighter",
+      "speed": "Action",
+      "check": "Attack",
+      "rarity": "Uncommon",
+      "text": "Attack. On hit, weapon damage +1d6.",
+      "effects": [
+        {
+          "type": "WeaponDamage",
+          "when": "onHit"
+        },
+        {
+          "type": "BonusDamage",
+          "when": "onHit",
+          "args": {
+            "dice": "1d6"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Attack. On hit, weapon damage +2d6.",
+        "effects": [
+          {
+            "type": "WeaponDamage",
+            "when": "onHit"
+          },
+          {
+            "type": "BonusDamage",
+            "when": "onHit",
+            "args": {
+              "dice": "2d6"
+            }
+          }
+        ]
+      },
+      "fx": "smash"
+    },
+    {
+      "id": "fighter.whirlwind",
+      "name": "Whirlwind",
+      "classId": "fighter",
+      "speed": "Action",
+      "check": "None",
+      "rarity": "Uncommon",
+      "text": "Spin through the pack: weapon damage to 2 random enemies. No roll.",
+      "effects": [
+        {
+          "type": "WeaponDamage",
+          "args": {
+            "target": "random2"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Weapon damage +2 to 2 random enemies. No roll.",
+        "effects": [
+          {
+            "type": "WeaponDamage",
+            "args": {
+              "target": "random2",
+              "bonus": "2"
+            }
+          }
+        ]
+      },
+      "fx": "slash"
+    },
+    {
+      "id": "fighter.parry",
+      "name": "Parry",
+      "classId": "fighter",
+      "speed": "Reaction",
+      "check": "None",
+      "rarity": "Uncommon",
+      "text": "Reaction: when you are hit, +3 AC against that attack.",
+      "effects": [
+        {
+          "type": "ModifyIncomingRoll",
+          "args": {
+            "targetDelta": "3"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Reaction: when you are hit, +4 AC against that attack and gain 3 Block.",
+        "effects": [
+          {
+            "type": "ModifyIncomingRoll",
+            "args": {
+              "targetDelta": "4"
+            }
+          },
+          {
+            "type": "Block",
+            "args": {
+              "amount": "3",
+              "target": "self"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "fighter.rally",
+      "name": "Rally",
+      "classId": "fighter",
+      "speed": "Quick",
+      "check": "None",
+      "rarity": "Uncommon",
+      "text": "The whole party gains 4 Block.",
+      "effects": [
+        {
+          "type": "Block",
+          "args": {
+            "amount": "4",
+            "target": "party"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "The whole party gains 6 Block.",
+        "effects": [
+          {
+            "type": "Block",
+            "args": {
+              "amount": "6",
+              "target": "party"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "fighter.extra_attack",
+      "name": "Extra Attack",
+      "classId": "fighter",
+      "speed": "Action",
+      "check": "Attack",
+      "rarity": "Rare",
+      "text": "Attack. On hit, weapon damage twice.",
+      "effects": [
+        {
+          "type": "WeaponDamage",
+          "when": "onHit"
+        },
+        {
+          "type": "WeaponDamage",
+          "when": "onHit"
+        }
+      ],
+      "upgrade": {
+        "text": "Attack. On hit, weapon damage +2, twice.",
+        "effects": [
+          {
+            "type": "WeaponDamage",
+            "when": "onHit",
+            "args": {
+              "bonus": "2"
+            }
+          },
+          {
+            "type": "WeaponDamage",
+            "when": "onHit",
+            "args": {
+              "bonus": "2"
+            }
+          }
+        ]
+      },
+      "fx": "slash"
+    },
+    {
+      "id": "fighter.action_surge",
+      "name": "Action Surge",
+      "classId": "fighter",
+      "speed": "Quick",
+      "check": "None",
+      "rarity": "Rare",
+      "exhaust": true,
+      "text": "Draw 2 cards. Exhaust.",
+      "effects": [
+        {
+          "type": "Draw",
+          "args": {
+            "count": "2"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Draw 2 cards and gain 5 Block. Exhaust.",
+        "effects": [
+          {
+            "type": "Draw",
+            "args": {
+              "count": "2"
+            }
+          },
+          {
+            "type": "Block",
+            "args": {
+              "amount": "5",
+              "target": "self"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "fighter.last_stand",
+      "name": "Last Stand",
+      "classId": "fighter",
+      "speed": "Action",
+      "check": "None",
+      "rarity": "Rare",
+      "text": "Gain 10 Block and heal 1d10. Enemies must target you for 2 rounds.",
+      "effects": [
+        {
+          "type": "Block",
+          "args": {
+            "amount": "10",
+            "target": "self"
+          }
+        },
+        {
+          "type": "Heal",
+          "args": {
+            "dice": "1d10",
+            "target": "self"
+          }
+        },
+        {
+          "type": "Apply",
+          "args": {
+            "cond": "Taunting",
+            "rounds": "2",
+            "target": "self"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Gain 14 Block and heal 1d10+2. Enemies must target you for 2 rounds.",
+        "effects": [
+          {
+            "type": "Block",
+            "args": {
+              "amount": "14",
+              "target": "self"
+            }
+          },
+          {
+            "type": "Heal",
+            "args": {
+              "dice": "1d10+2",
+              "target": "self"
+            }
+          },
+          {
+            "type": "Apply",
+            "args": {
+              "cond": "Taunting",
+              "rounds": "2",
+              "target": "self"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "rogue.poisoned_blade",
+      "name": "Poisoned Blade",
+      "classId": "rogue",
+      "speed": "Action",
+      "check": "Attack",
+      "rarity": "Uncommon",
+      "text": "Attack. On hit, weapon damage and Poison: 3 damage on each of its next 3 turns.",
+      "effects": [
+        {
+          "type": "WeaponDamage",
+          "when": "onHit"
+        },
+        {
+          "type": "Poison",
+          "when": "onHit",
+          "args": {
+            "amount": "3",
+            "rounds": "3"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Attack. On hit, weapon damage and Poison: 4 damage on each of its next 3 turns.",
+        "effects": [
+          {
+            "type": "WeaponDamage",
+            "when": "onHit"
+          },
+          {
+            "type": "Poison",
+            "when": "onHit",
+            "args": {
+              "amount": "4",
+              "rounds": "3"
+            }
+          }
+        ]
+      },
+      "fx": "poison"
+    },
+    {
+      "id": "rogue.dirty_trick",
+      "name": "Dirty Trick",
+      "classId": "rogue",
+      "speed": "Quick",
+      "check": "Attack",
+      "rarity": "Uncommon",
+      "text": "Quick attack. On hit, the target is Prone for 1 round.",
+      "effects": [
+        {
+          "type": "Apply",
+          "when": "onHit",
+          "args": {
+            "cond": "Prone",
+            "rounds": "1"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Quick attack. On hit, 1d4 damage and the target is Prone for 1 round.",
+        "effects": [
+          {
+            "type": "Damage",
+            "when": "onHit",
+            "args": {
+              "dice": "1d4",
+              "type": "weapon"
+            }
+          },
+          {
+            "type": "Apply",
+            "when": "onHit",
+            "args": {
+              "cond": "Prone",
+              "rounds": "1"
+            }
+          }
+        ]
+      },
+      "fx": "stab"
+    },
+    {
+      "id": "rogue.throwing_knives",
+      "name": "Throwing Knives",
+      "classId": "rogue",
+      "speed": "Action",
+      "check": "None",
+      "rarity": "Uncommon",
+      "text": "Two knives: 1d6+2 to 2 random enemies. No roll.",
+      "effects": [
+        {
+          "type": "Damage",
+          "args": {
+            "dice": "1d6+2",
+            "type": "weapon",
+            "target": "random2"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Two knives: 1d6+4 to 2 random enemies. No roll.",
+        "effects": [
+          {
+            "type": "Damage",
+            "args": {
+              "dice": "1d6+4",
+              "type": "weapon",
+              "target": "random2"
+            }
+          }
+        ]
+      },
+      "fx": "arrow"
+    },
+    {
+      "id": "rogue.uncanny_dodge",
+      "name": "Uncanny Dodge",
+      "classId": "rogue",
+      "speed": "Reaction",
+      "check": "None",
+      "rarity": "Uncommon",
+      "text": "Reaction: when you are hit, +4 AC against that attack.",
+      "effects": [
+        {
+          "type": "ModifyIncomingRoll",
+          "args": {
+            "targetDelta": "4"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Reaction: when you are hit, +5 AC against that attack and gain 3 Block.",
+        "effects": [
+          {
+            "type": "ModifyIncomingRoll",
+            "args": {
+              "targetDelta": "5"
+            }
+          },
+          {
+            "type": "Block",
+            "args": {
+              "amount": "3",
+              "target": "self"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "rogue.vanish",
+      "name": "Vanish",
+      "classId": "rogue",
+      "speed": "Quick",
+      "check": "None",
+      "rarity": "Uncommon",
+      "text": "Gain 4 Block. Your next attack has advantage.",
+      "effects": [
+        {
+          "type": "Block",
+          "args": {
+            "amount": "4",
+            "target": "self"
+          }
+        },
+        {
+          "type": "Apply",
+          "args": {
+            "cond": "Cunning",
+            "rounds": "1",
+            "target": "self"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Gain 7 Block. Your next attack has advantage.",
+        "effects": [
+          {
+            "type": "Block",
+            "args": {
+              "amount": "7",
+              "target": "self"
+            }
+          },
+          {
+            "type": "Apply",
+            "args": {
+              "cond": "Cunning",
+              "rounds": "1",
+              "target": "self"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "rogue.assassinate",
+      "name": "Assassinate",
+      "classId": "rogue",
+      "speed": "Action",
+      "check": "Attack",
+      "rarity": "Rare",
+      "text": "Attack. +4d6 if the target is Marked or Prone, or an ally hit it this round.",
+      "effects": [
+        {
+          "type": "WeaponDamage",
+          "when": "onHit"
+        },
+        {
+          "type": "BonusDamage",
+          "when": "onHit",
+          "args": {
+            "dice": "4d6",
+            "if": "target.Marked|target.Prone|allyHitThisRound"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Attack. +5d6 if the target is Marked or Prone, or an ally hit it this round.",
+        "effects": [
+          {
+            "type": "WeaponDamage",
+            "when": "onHit"
+          },
+          {
+            "type": "BonusDamage",
+            "when": "onHit",
+            "args": {
+              "dice": "5d6",
+              "if": "target.Marked|target.Prone|allyHitThisRound"
+            }
+          }
+        ]
+      },
+      "fx": "stab"
+    },
+    {
+      "id": "rogue.fast_hands",
+      "name": "Fast Hands",
+      "classId": "rogue",
+      "speed": "Quick",
+      "check": "None",
+      "rarity": "Rare",
+      "exhaust": true,
+      "text": "Draw 2 cards. Exhaust.",
+      "effects": [
+        {
+          "type": "Draw",
+          "args": {
+            "count": "2"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Draw 2 cards. Your next attack has advantage. Exhaust.",
+        "effects": [
+          {
+            "type": "Draw",
+            "args": {
+              "count": "2"
+            }
+          },
+          {
+            "type": "Apply",
+            "args": {
+              "cond": "Cunning",
+              "rounds": "1",
+              "target": "self"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "rogue.black_venom",
+      "name": "Black Venom",
+      "classId": "rogue",
+      "speed": "Action",
+      "check": "None",
+      "rarity": "Rare",
+      "text": "Poison every enemy: 3 damage on each of their next 3 turns.",
+      "effects": [
+        {
+          "type": "Poison",
+          "args": {
+            "amount": "3",
+            "rounds": "3",
+            "target": "allEnemies"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Poison every enemy: 4 damage on each of their next 3 turns.",
+        "effects": [
+          {
+            "type": "Poison",
+            "args": {
+              "amount": "4",
+              "rounds": "3",
+              "target": "allEnemies"
+            }
+          }
+        ]
+      },
+      "fx": "poison"
+    },
+    {
+      "id": "wizard.chromatic_orb",
+      "name": "Chromatic Orb",
+      "classId": "wizard",
+      "speed": "Action",
+      "check": "Attack",
+      "rarity": "Uncommon",
+      "spell": true,
+      "text": "Spell attack. On hit, 3d8 fire.",
+      "effects": [
+        {
+          "type": "Damage",
+          "when": "onHit",
+          "args": {
+            "dice": "3d8",
+            "type": "fire"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Spell attack. On hit, 4d8 fire.",
+        "effects": [
+          {
+            "type": "Damage",
+            "when": "onHit",
+            "args": {
+              "dice": "4d8",
+              "type": "fire"
+            }
+          }
+        ]
+      },
+      "fx": "bolt"
+    },
+    {
+      "id": "wizard.scorching_ray",
+      "name": "Scorching Ray",
+      "classId": "wizard",
+      "speed": "Action",
+      "check": "None",
+      "rarity": "Uncommon",
+      "text": "Rays strike 2 random enemies for 2d6 fire each. No roll.",
+      "effects": [
+        {
+          "type": "Damage",
+          "args": {
+            "dice": "2d6",
+            "type": "fire",
+            "target": "random2"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Rays strike 2 random enemies for 3d6 fire each. No roll.",
+        "effects": [
+          {
+            "type": "Damage",
+            "args": {
+              "dice": "3d6",
+              "type": "fire",
+              "target": "random2"
+            }
+          }
+        ]
+      },
+      "fx": "fire"
+    },
+    {
+      "id": "wizard.thunderwave",
+      "name": "Thunderwave",
+      "classId": "wizard",
+      "speed": "Action",
+      "check": "Save",
+      "rarity": "Uncommon",
+      "text": "All enemies save vs your spell DC. Fail: 2d8 thunder and Prone for 1 round. Save: half.",
+      "effects": [
+        {
+          "type": "Damage",
+          "when": "onHit",
+          "args": {
+            "dice": "2d8",
+            "type": "thunder",
+            "target": "allEnemies"
+          }
+        },
+        {
+          "type": "Apply",
+          "when": "onHit",
+          "args": {
+            "cond": "Prone",
+            "rounds": "1",
+            "target": "allEnemies"
+          }
+        },
+        {
+          "type": "Damage",
+          "when": "onMiss",
+          "args": {
+            "dice": "2d8",
+            "type": "thunder",
+            "half": "true",
+            "target": "allEnemies"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "All enemies save vs your spell DC. Fail: 3d8 thunder and Prone for 1 round. Save: half.",
+        "effects": [
+          {
+            "type": "Damage",
+            "when": "onHit",
+            "args": {
+              "dice": "3d8",
+              "type": "thunder",
+              "target": "allEnemies"
+            }
+          },
+          {
+            "type": "Apply",
+            "when": "onHit",
+            "args": {
+              "cond": "Prone",
+              "rounds": "1",
+              "target": "allEnemies"
+            }
+          },
+          {
+            "type": "Damage",
+            "when": "onMiss",
+            "args": {
+              "dice": "3d8",
+              "type": "thunder",
+              "half": "true",
+              "target": "allEnemies"
+            }
+          }
+        ]
+      },
+      "fx": "smash"
+    },
+    {
+      "id": "wizard.ray_of_sickness",
+      "name": "Ray of Sickness",
+      "classId": "wizard",
+      "speed": "Action",
+      "check": "Attack",
+      "rarity": "Uncommon",
+      "spell": true,
+      "text": "Spell attack. On hit, 2d8 poison and Poison: 2 damage on each of its next 3 turns.",
+      "effects": [
+        {
+          "type": "Damage",
+          "when": "onHit",
+          "args": {
+            "dice": "2d8",
+            "type": "poison"
+          }
+        },
+        {
+          "type": "Poison",
+          "when": "onHit",
+          "args": {
+            "amount": "2",
+            "rounds": "3"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Spell attack. On hit, 3d8 poison and Poison: 3 damage on each of its next 3 turns.",
+        "effects": [
+          {
+            "type": "Damage",
+            "when": "onHit",
+            "args": {
+              "dice": "3d8",
+              "type": "poison"
+            }
+          },
+          {
+            "type": "Poison",
+            "when": "onHit",
+            "args": {
+              "amount": "3",
+              "rounds": "3"
+            }
+          }
+        ]
+      },
+      "fx": "poison"
+    },
+    {
+      "id": "wizard.mage_armor",
+      "name": "Mage Armor",
+      "classId": "wizard",
+      "speed": "Quick",
+      "check": "None",
+      "rarity": "Uncommon",
+      "text": "Gain 8 Block.",
+      "effects": [
+        {
+          "type": "Block",
+          "args": {
+            "amount": "8",
+            "target": "self"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Gain 11 Block.",
+        "effects": [
+          {
+            "type": "Block",
+            "args": {
+              "amount": "11",
+              "target": "self"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "wizard.fireball",
+      "name": "Fireball",
+      "classId": "wizard",
+      "speed": "Action",
+      "check": "Save",
+      "rarity": "Rare",
+      "text": "All enemies save vs your spell DC. Fail: 5d6 fire. Save: half.",
+      "effects": [
+        {
+          "type": "Damage",
+          "when": "onHit",
+          "args": {
+            "dice": "5d6",
+            "type": "fire",
+            "target": "allEnemies"
+          }
+        },
+        {
+          "type": "Damage",
+          "when": "onMiss",
+          "args": {
+            "dice": "5d6",
+            "type": "fire",
+            "half": "true",
+            "target": "allEnemies"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "All enemies save vs your spell DC. Fail: 6d6 fire. Save: half.",
+        "effects": [
+          {
+            "type": "Damage",
+            "when": "onHit",
+            "args": {
+              "dice": "6d6",
+              "type": "fire",
+              "target": "allEnemies"
+            }
+          },
+          {
+            "type": "Damage",
+            "when": "onMiss",
+            "args": {
+              "dice": "6d6",
+              "type": "fire",
+              "half": "true",
+              "target": "allEnemies"
+            }
+          }
+        ]
+      },
+      "fx": "fire"
+    },
+    {
+      "id": "wizard.lightning_bolt",
+      "name": "Lightning Bolt",
+      "classId": "wizard",
+      "speed": "Action",
+      "check": "Save",
+      "rarity": "Rare",
+      "text": "2 random enemies save vs your spell DC. Fail: 6d6 lightning. Save: half.",
+      "effects": [
+        {
+          "type": "Damage",
+          "when": "onHit",
+          "args": {
+            "dice": "6d6",
+            "type": "lightning",
+            "target": "random2"
+          }
+        },
+        {
+          "type": "Damage",
+          "when": "onMiss",
+          "args": {
+            "dice": "6d6",
+            "type": "lightning",
+            "half": "true",
+            "target": "random2"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "2 random enemies save vs your spell DC. Fail: 7d6 lightning. Save: half.",
+        "effects": [
+          {
+            "type": "Damage",
+            "when": "onHit",
+            "args": {
+              "dice": "7d6",
+              "type": "lightning",
+              "target": "random2"
+            }
+          },
+          {
+            "type": "Damage",
+            "when": "onMiss",
+            "args": {
+              "dice": "7d6",
+              "type": "lightning",
+              "half": "true",
+              "target": "random2"
+            }
+          }
+        ]
+      },
+      "fx": "bolt"
+    },
+    {
+      "id": "wizard.arcane_recovery",
+      "name": "Arcane Recovery",
+      "classId": "wizard",
+      "speed": "Quick",
+      "check": "None",
+      "rarity": "Rare",
+      "exhaust": true,
+      "text": "Draw 2 cards. Exhaust.",
+      "effects": [
+        {
+          "type": "Draw",
+          "args": {
+            "count": "2"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Draw 2 cards and gain 4 Block. Exhaust.",
+        "effects": [
+          {
+            "type": "Draw",
+            "args": {
+              "count": "2"
+            }
+          },
+          {
+            "type": "Block",
+            "args": {
+              "amount": "4",
+              "target": "self"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "cleric.guiding_bolt",
+      "name": "Guiding Bolt",
+      "classId": "cleric",
+      "speed": "Action",
+      "check": "Attack",
+      "rarity": "Uncommon",
+      "spell": true,
+      "text": "Spell attack. On hit, 3d6 radiant and the target is Prone (attacks have advantage) for 1 round.",
+      "effects": [
+        {
+          "type": "Damage",
+          "when": "onHit",
+          "args": {
+            "dice": "3d6",
+            "type": "radiant"
+          }
+        },
+        {
+          "type": "Apply",
+          "when": "onHit",
+          "args": {
+            "cond": "Prone",
+            "rounds": "1"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Spell attack. On hit, 4d6 radiant and the target is Prone (attacks have advantage) for 1 round.",
+        "effects": [
+          {
+            "type": "Damage",
+            "when": "onHit",
+            "args": {
+              "dice": "4d6",
+              "type": "radiant"
+            }
+          },
+          {
+            "type": "Apply",
+            "when": "onHit",
+            "args": {
+              "cond": "Prone",
+              "rounds": "1"
+            }
+          }
+        ]
+      },
+      "fx": "radiant"
+    },
+    {
+      "id": "cleric.healing_word",
+      "name": "Healing Word",
+      "classId": "cleric",
+      "speed": "Quick",
+      "check": "None",
+      "rarity": "Uncommon",
+      "text": "Quick: an ally heals 1d4+3. Brings a Downed ally back up.",
+      "effects": [
+        {
+          "type": "Heal",
+          "args": {
+            "dice": "1d4+3",
+            "target": "target"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Quick: an ally heals 2d4+3. Brings a Downed ally back up.",
+        "effects": [
+          {
+            "type": "Heal",
+            "args": {
+              "dice": "2d4+3",
+              "target": "target"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "cleric.shield_of_faith",
+      "name": "Shield of Faith",
+      "classId": "cleric",
+      "speed": "Quick",
+      "check": "None",
+      "rarity": "Uncommon",
+      "text": "An ally gains 6 Block.",
+      "effects": [
+        {
+          "type": "Block",
+          "args": {
+            "amount": "6",
+            "target": "target"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "An ally gains 9 Block.",
+        "effects": [
+          {
+            "type": "Block",
+            "args": {
+              "amount": "9",
+              "target": "target"
+            }
+          }
+        ]
+      },
+      "fx": "shield"
+    },
+    {
+      "id": "cleric.spiritual_weapon",
+      "name": "Spiritual Weapon",
+      "classId": "cleric",
+      "speed": "Quick",
+      "check": "Attack",
+      "rarity": "Uncommon",
+      "spell": true,
+      "text": "Quick spell attack. On hit, 1d8+3 force.",
+      "effects": [
+        {
+          "type": "Damage",
+          "when": "onHit",
+          "args": {
+            "dice": "1d8+3",
+            "type": "force"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Quick spell attack. On hit, 2d8+3 force.",
+        "effects": [
+          {
+            "type": "Damage",
+            "when": "onHit",
+            "args": {
+              "dice": "2d8+3",
+              "type": "force"
+            }
+          }
+        ]
+      },
+      "fx": "smash"
+    },
+    {
+      "id": "cleric.prayer_of_healing",
+      "name": "Prayer of Healing",
+      "classId": "cleric",
+      "speed": "Action",
+      "check": "None",
+      "rarity": "Uncommon",
+      "text": "Every ally heals 1d6+1. Brings Downed allies back up.",
+      "effects": [
+        {
+          "type": "Heal",
+          "args": {
+            "dice": "1d6+1",
+            "target": "party"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Every ally heals 2d6+1. Brings Downed allies back up.",
+        "effects": [
+          {
+            "type": "Heal",
+            "args": {
+              "dice": "2d6+1",
+              "target": "party"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "cleric.spirit_guardians",
+      "name": "Spirit Guardians",
+      "classId": "cleric",
+      "speed": "Action",
+      "check": "Save",
+      "rarity": "Rare",
+      "text": "All enemies save vs your spell DC. Fail: 3d8 radiant. Save: half.",
+      "effects": [
+        {
+          "type": "Damage",
+          "when": "onHit",
+          "args": {
+            "dice": "3d8",
+            "type": "radiant",
+            "target": "allEnemies"
+          }
+        },
+        {
+          "type": "Damage",
+          "when": "onMiss",
+          "args": {
+            "dice": "3d8",
+            "type": "radiant",
+            "half": "true",
+            "target": "allEnemies"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "All enemies save vs your spell DC. Fail: 4d8 radiant. Save: half.",
+        "effects": [
+          {
+            "type": "Damage",
+            "when": "onHit",
+            "args": {
+              "dice": "4d8",
+              "type": "radiant",
+              "target": "allEnemies"
+            }
+          },
+          {
+            "type": "Damage",
+            "when": "onMiss",
+            "args": {
+              "dice": "4d8",
+              "type": "radiant",
+              "half": "true",
+              "target": "allEnemies"
+            }
+          }
+        ]
+      },
+      "fx": "radiant"
+    },
+    {
+      "id": "cleric.mass_healing_word",
+      "name": "Mass Healing Word",
+      "classId": "cleric",
+      "speed": "Quick",
+      "check": "None",
+      "rarity": "Rare",
+      "text": "Quick: every ally heals 1d4+3. Brings Downed allies back up.",
+      "effects": [
+        {
+          "type": "Heal",
+          "args": {
+            "dice": "1d4+3",
+            "target": "party"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Quick: every ally heals 2d4+4. Brings Downed allies back up.",
+        "effects": [
+          {
+            "type": "Heal",
+            "args": {
+              "dice": "2d4+4",
+              "target": "party"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "cleric.channel_divinity",
+      "name": "Channel Divinity",
+      "classId": "cleric",
+      "speed": "Quick",
+      "check": "None",
+      "rarity": "Rare",
+      "exhaust": true,
+      "text": "Draw 1 card. The party gains 3 Block. Exhaust.",
+      "effects": [
+        {
+          "type": "Draw",
+          "args": {
+            "count": "1"
+          }
+        },
+        {
+          "type": "Block",
+          "args": {
+            "amount": "3",
+            "target": "party"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Draw 2 cards. The party gains 3 Block. Exhaust.",
+        "effects": [
+          {
+            "type": "Draw",
+            "args": {
+              "count": "2"
+            }
+          },
+          {
+            "type": "Block",
+            "args": {
+              "amount": "3",
+              "target": "party"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "neutral.throwing_dagger",
+      "name": "Throwing Dagger",
+      "classId": "neutral",
+      "speed": "Action",
+      "check": "Attack",
+      "rarity": "Common",
+      "text": "Attack. On hit, 1d6+2 piercing.",
+      "effects": [
+        {
+          "type": "Damage",
+          "when": "onHit",
+          "args": {
+            "dice": "1d6+2",
+            "type": "weapon"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Attack. On hit, 1d6+4 piercing.",
+        "effects": [
+          {
+            "type": "Damage",
+            "when": "onHit",
+            "args": {
+              "dice": "1d6+4",
+              "type": "weapon"
+            }
+          }
+        ]
+      },
+      "fx": "arrow"
+    },
+    {
+      "id": "neutral.bandage",
+      "name": "Bandage",
+      "classId": "neutral",
+      "speed": "Quick",
+      "check": "None",
+      "rarity": "Common",
+      "text": "An ally heals 1d6. Brings a Downed ally back up.",
+      "effects": [
+        {
+          "type": "Heal",
+          "args": {
+            "dice": "1d6",
+            "target": "target"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "An ally heals 1d6+3. Brings a Downed ally back up.",
+        "effects": [
+          {
+            "type": "Heal",
+            "args": {
+              "dice": "1d6+3",
+              "target": "target"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "neutral.alchemists_fire",
+      "name": "Alchemist's Fire",
+      "classId": "neutral",
+      "speed": "Action",
+      "check": "None",
+      "rarity": "Uncommon",
+      "text": "Hurl a flask: 2d4+1 fire to 2 random enemies. No roll.",
+      "effects": [
+        {
+          "type": "Damage",
+          "args": {
+            "dice": "2d4+1",
+            "type": "fire",
+            "target": "random2"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Hurl a flask: 2d4+3 fire to 2 random enemies. No roll.",
+        "effects": [
+          {
+            "type": "Damage",
+            "args": {
+              "dice": "2d4+3",
+              "type": "fire",
+              "target": "random2"
+            }
+          }
+        ]
+      },
+      "fx": "fire"
+    },
+    {
+      "id": "neutral.basic_poison",
+      "name": "Basic Poison",
+      "classId": "neutral",
+      "speed": "Quick",
+      "check": "None",
+      "rarity": "Uncommon",
+      "text": "Poison an enemy: 2 damage on each of its next 3 turns.",
+      "effects": [
+        {
+          "type": "Poison",
+          "args": {
+            "amount": "2",
+            "rounds": "3"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Poison an enemy: 3 damage on each of its next 3 turns.",
+        "effects": [
+          {
+            "type": "Poison",
+            "args": {
+              "amount": "3",
+              "rounds": "3"
+            }
+          }
+        ]
+      },
+      "fx": "poison"
+    },
+    {
+      "id": "neutral.hold_the_line",
+      "name": "Hold the Line",
+      "classId": "neutral",
+      "speed": "Quick",
+      "check": "None",
+      "rarity": "Uncommon",
+      "text": "Gain 5 Block.",
+      "effects": [
+        {
+          "type": "Block",
+          "args": {
+            "amount": "5",
+            "target": "self"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Gain 8 Block.",
+        "effects": [
+          {
+            "type": "Block",
+            "args": {
+              "amount": "8",
+              "target": "self"
+            }
+          }
+        ]
+      },
+      "fx": "shield"
+    },
+    {
+      "id": "neutral.potion_of_heroism",
+      "name": "Potion of Heroism",
+      "classId": "neutral",
+      "speed": "Quick",
+      "check": "None",
+      "rarity": "Rare",
+      "exhaust": true,
+      "text": "You are Blessed for 3 rounds and gain 10 Block. Exhaust.",
+      "effects": [
+        {
+          "type": "Apply",
+          "args": {
+            "cond": "Blessed",
+            "rounds": "3",
+            "target": "self"
+          }
+        },
+        {
+          "type": "Block",
+          "args": {
+            "amount": "10",
+            "target": "self"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "You are Blessed for 4 rounds and gain 12 Block. Exhaust.",
+        "effects": [
+          {
+            "type": "Apply",
+            "args": {
+              "cond": "Blessed",
+              "rounds": "4",
+              "target": "self"
+            }
+          },
+          {
+            "type": "Block",
+            "args": {
+              "amount": "12",
+              "target": "self"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "bard.vicious_mockery",
+      "name": "Vicious Mockery",
+      "classId": "bard",
+      "speed": "Action",
+      "check": "Save",
+      "rarity": "Common",
+      "text": "An enemy saves vs your spell DC. Fail: 1d8+2 psychic and it is Outlined (attacks have advantage) for 1 round.",
+      "effects": [
+        {
+          "type": "Damage",
+          "when": "onHit",
+          "args": {
+            "dice": "1d8+2",
+            "type": "psychic"
+          }
+        },
+        {
+          "type": "Apply",
+          "when": "onHit",
+          "args": {
+            "cond": "Outlined",
+            "rounds": "1"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "An enemy saves vs your spell DC. Fail: 2d8+2 psychic and it is Outlined (attacks have advantage) for 1 round.",
+        "effects": [
+          {
+            "type": "Damage",
+            "when": "onHit",
+            "args": {
+              "dice": "2d8+2",
+              "type": "psychic"
+            }
+          },
+          {
+            "type": "Apply",
+            "when": "onHit",
+            "args": {
+              "cond": "Outlined",
+              "rounds": "1"
+            }
+          }
+        ]
+      },
+      "fx": "song"
+    },
+    {
+      "id": "bard.healing_word",
+      "name": "Healing Word",
+      "classId": "bard",
+      "speed": "Quick",
+      "check": "None",
+      "rarity": "Common",
+      "text": "Quick: an ally heals 1d4+3. Brings a Downed ally back up.",
+      "effects": [
+        {
+          "type": "Heal",
+          "args": {
+            "dice": "1d4+3",
+            "target": "target"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Quick: an ally heals 2d4+3. Brings a Downed ally back up.",
+        "effects": [
+          {
+            "type": "Heal",
+            "args": {
+              "dice": "2d4+3",
+              "target": "target"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "bard.cutting_words",
+      "name": "Cutting Words",
+      "classId": "bard",
+      "speed": "Reaction",
+      "check": "None",
+      "rarity": "Common",
+      "text": "Reaction: when you are hit, a cutting remark gives +3 AC against that attack.",
+      "effects": [
+        {
+          "type": "ModifyIncomingRoll",
+          "args": {
+            "targetDelta": "3"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Reaction: when you are hit, +4 AC against that attack and gain a d6 Inspiration die.",
+        "effects": [
+          {
+            "type": "ModifyIncomingRoll",
+            "args": {
+              "targetDelta": "4"
+            }
+          },
+          {
+            "type": "Inspire",
+            "args": {
+              "dice": "1d6",
+              "target": "self"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "bard.rallying_tune",
+      "name": "Rallying Tune",
+      "classId": "bard",
+      "speed": "Action",
+      "check": "None",
+      "rarity": "Uncommon",
+      "text": "Every ally gains a d6 Inspiration die.",
+      "effects": [
+        {
+          "type": "Inspire",
+          "args": {
+            "dice": "1d6",
+            "target": "party"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Every ally gains a d8 Inspiration die.",
+        "effects": [
+          {
+            "type": "Inspire",
+            "args": {
+              "dice": "1d8",
+              "target": "party"
+            }
+          }
+        ]
+      },
+      "fx": "song"
+    },
+    {
+      "id": "bard.faerie_fire",
+      "name": "Faerie Fire",
+      "classId": "bard",
+      "speed": "Action",
+      "check": "Save",
+      "rarity": "Uncommon",
+      "text": "All enemies save vs your spell DC. Fail: Outlined (attacks have advantage) for 2 rounds.",
+      "effects": [
+        {
+          "type": "Apply",
+          "when": "onHit",
+          "args": {
+            "cond": "Outlined",
+            "rounds": "2",
+            "target": "allEnemies"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "All enemies save vs your spell DC. Fail: Outlined (attacks have advantage) for 3 rounds.",
+        "effects": [
+          {
+            "type": "Apply",
+            "when": "onHit",
+            "args": {
+              "cond": "Outlined",
+              "rounds": "3",
+              "target": "allEnemies"
+            }
+          }
+        ]
+      },
+      "fx": "radiant"
+    },
+    {
+      "id": "bard.discordant_note",
+      "name": "Discordant Note",
+      "classId": "bard",
+      "speed": "Action",
+      "check": "Save",
+      "rarity": "Uncommon",
+      "text": "An enemy saves vs your spell DC. Fail: 3d6 psychic. Save: half.",
+      "effects": [
+        {
+          "type": "Damage",
+          "when": "onHit",
+          "args": {
+            "dice": "3d6",
+            "type": "psychic"
+          }
+        },
+        {
+          "type": "Damage",
+          "when": "onMiss",
+          "args": {
+            "dice": "3d6",
+            "type": "psychic",
+            "half": "true"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "An enemy saves vs your spell DC. Fail: 4d6 psychic. Save: half.",
+        "effects": [
+          {
+            "type": "Damage",
+            "when": "onHit",
+            "args": {
+              "dice": "4d6",
+              "type": "psychic"
+            }
+          },
+          {
+            "type": "Damage",
+            "when": "onMiss",
+            "args": {
+              "dice": "4d6",
+              "type": "psychic",
+              "half": "true"
+            }
+          }
+        ]
+      },
+      "fx": "song"
+    },
+    {
+      "id": "bard.heroism",
+      "name": "Heroism",
+      "classId": "bard",
+      "speed": "Quick",
+      "check": "None",
+      "rarity": "Uncommon",
+      "text": "Quick: an ally gains 6 temporary HP (they last the fight).",
+      "effects": [
+        {
+          "type": "TempHp",
+          "args": {
+            "amount": "6",
+            "target": "target"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Quick: an ally gains 9 temporary HP (they last the fight).",
+        "effects": [
+          {
+            "type": "TempHp",
+            "args": {
+              "amount": "9",
+              "target": "target"
+            }
+          }
+        ]
+      },
+      "fx": "shield"
+    },
+    {
+      "id": "bard.thunderwave",
+      "name": "Thunderwave",
+      "classId": "bard",
+      "speed": "Action",
+      "check": "Save",
+      "rarity": "Uncommon",
+      "text": "All enemies save vs your spell DC. Fail: 2d8 thunder. Save: half.",
+      "effects": [
+        {
+          "type": "Damage",
+          "when": "onHit",
+          "args": {
+            "dice": "2d8",
+            "type": "thunder",
+            "target": "allEnemies"
+          }
+        },
+        {
+          "type": "Damage",
+          "when": "onMiss",
+          "args": {
+            "dice": "2d8",
+            "type": "thunder",
+            "half": "true",
+            "target": "allEnemies"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "All enemies save vs your spell DC. Fail: 3d8 thunder. Save: half.",
+        "effects": [
+          {
+            "type": "Damage",
+            "when": "onHit",
+            "args": {
+              "dice": "3d8",
+              "type": "thunder",
+              "target": "allEnemies"
+            }
+          },
+          {
+            "type": "Damage",
+            "when": "onMiss",
+            "args": {
+              "dice": "3d8",
+              "type": "thunder",
+              "half": "true",
+              "target": "allEnemies"
+            }
+          }
+        ]
+      },
+      "fx": "smash"
+    },
+    {
+      "id": "bard.hold_person",
+      "name": "Hold Person",
+      "classId": "bard",
+      "speed": "Action",
+      "check": "Save",
+      "rarity": "Rare",
+      "text": "An enemy saves vs your spell DC. Fail: Paralyzed for 1 round (it loses its turn; attacks have advantage).",
+      "effects": [
+        {
+          "type": "Apply",
+          "when": "onHit",
+          "args": {
+            "cond": "Paralyzed",
+            "rounds": "1"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "An enemy saves vs your spell DC. Fail: Paralyzed for 2 rounds (it loses its turns; attacks have advantage).",
+        "effects": [
+          {
+            "type": "Apply",
+            "when": "onHit",
+            "args": {
+              "cond": "Paralyzed",
+              "rounds": "2"
+            }
+          }
+        ]
+      },
+      "fx": "song"
+    },
+    {
+      "id": "bard.hypnotic_pattern",
+      "name": "Hypnotic Pattern",
+      "classId": "bard",
+      "speed": "Action",
+      "check": "Save",
+      "rarity": "Rare",
+      "text": "All enemies save vs your spell DC. Fail: Charmed for 1 round (they lose their turn).",
+      "effects": [
+        {
+          "type": "Apply",
+          "when": "onHit",
+          "args": {
+            "cond": "Charmed",
+            "rounds": "1",
+            "target": "allEnemies"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "All enemies save vs your spell DC. Fail: Charmed for 1 round and Outlined for 2.",
+        "effects": [
+          {
+            "type": "Apply",
+            "when": "onHit",
+            "args": {
+              "cond": "Charmed",
+              "rounds": "1",
+              "target": "allEnemies"
+            }
+          },
+          {
+            "type": "Apply",
+            "when": "onHit",
+            "args": {
+              "cond": "Outlined",
+              "rounds": "2",
+              "target": "allEnemies"
+            }
+          }
+        ]
+      },
+      "fx": "song"
+    },
+    {
+      "id": "bard.jack_of_all_trades",
+      "name": "Jack of All Trades",
+      "classId": "bard",
+      "speed": "Quick",
+      "check": "None",
+      "rarity": "Rare",
+      "text": "Draw 1 card and gain a d6 Inspiration die.",
+      "effects": [
+        {
+          "type": "Draw",
+          "args": {
+            "count": "1"
+          }
+        },
+        {
+          "type": "Inspire",
+          "args": {
+            "dice": "1d6",
+            "target": "self"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Draw 2 cards and gain a d6 Inspiration die.",
+        "effects": [
+          {
+            "type": "Draw",
+            "args": {
+              "count": "2"
+            }
+          },
+          {
+            "type": "Inspire",
+            "args": {
+              "dice": "1d6",
+              "target": "self"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "ranger.barbed_arrow",
+      "name": "Barbed Arrow",
+      "classId": "ranger",
+      "speed": "Action",
+      "check": "Attack",
+      "rarity": "Common",
+      "text": "Attack. On hit, weapon damage, and thorns deal 1d6 to another enemy.",
+      "effects": [
+        {
+          "type": "WeaponDamage",
+          "when": "onHit"
+        },
+        {
+          "type": "Damage",
+          "when": "onHit",
+          "args": {
+            "dice": "1d6",
+            "type": "piercing",
+            "target": "adjacent"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Attack. On hit, weapon damage, and thorns deal 2d6 to another enemy.",
+        "effects": [
+          {
+            "type": "WeaponDamage",
+            "when": "onHit"
+          },
+          {
+            "type": "Damage",
+            "when": "onHit",
+            "args": {
+              "dice": "2d6",
+              "type": "piercing",
+              "target": "adjacent"
+            }
+          }
+        ]
+      },
+      "fx": "arrow"
+    },
+    {
+      "id": "ranger.snaring_shot",
+      "name": "Snaring Shot",
+      "classId": "ranger",
+      "speed": "Action",
+      "check": "Attack",
+      "rarity": "Common",
+      "text": "Attack. On hit, weapon damage and the target is Restrained for 1 round (attacks on it have advantage; its attacks have disadvantage).",
+      "effects": [
+        {
+          "type": "WeaponDamage",
+          "when": "onHit"
+        },
+        {
+          "type": "Apply",
+          "when": "onHit",
+          "args": {
+            "cond": "Restrained",
+            "rounds": "1"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Attack. On hit, weapon damage +1d6 and the target is Restrained for 1 round.",
+        "effects": [
+          {
+            "type": "WeaponDamage",
+            "when": "onHit"
+          },
+          {
+            "type": "Damage",
+            "when": "onHit",
+            "args": {
+              "dice": "1d6",
+              "type": "piercing"
+            }
+          },
+          {
+            "type": "Apply",
+            "when": "onHit",
+            "args": {
+              "cond": "Restrained",
+              "rounds": "1"
+            }
+          }
+        ]
+      },
+      "fx": "vine"
+    },
+    {
+      "id": "ranger.colossus_slayer",
+      "name": "Colossus Slayer",
+      "classId": "ranger",
+      "speed": "Action",
+      "check": "Attack",
+      "rarity": "Common",
+      "text": "Attack. +1d8 if the target is already hurt.",
+      "effects": [
+        {
+          "type": "WeaponDamage",
+          "when": "onHit"
+        },
+        {
+          "type": "BonusDamage",
+          "when": "onHit",
+          "args": {
+            "dice": "1d8",
+            "if": "target.Hurt"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Attack. +2d8 if the target is already hurt.",
+        "effects": [
+          {
+            "type": "WeaponDamage",
+            "when": "onHit"
+          },
+          {
+            "type": "BonusDamage",
+            "when": "onHit",
+            "args": {
+              "dice": "2d8",
+              "if": "target.Hurt"
+            }
+          }
+        ]
+      },
+      "fx": "arrow"
+    },
+    {
+      "id": "ranger.volley",
+      "name": "Volley",
+      "classId": "ranger",
+      "speed": "Action",
+      "check": "None",
+      "rarity": "Uncommon",
+      "text": "A spread of arrows: 1d8+2 to 2 random enemies. No roll.",
+      "effects": [
+        {
+          "type": "Damage",
+          "args": {
+            "dice": "1d8+2",
+            "type": "weapon",
+            "target": "random2"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "A spread of arrows: 1d8+4 to 2 random enemies. No roll.",
+        "effects": [
+          {
+            "type": "Damage",
+            "args": {
+              "dice": "1d8+4",
+              "type": "weapon",
+              "target": "random2"
+            }
+          }
+        ]
+      },
+      "fx": "arrow"
+    },
+    {
+      "id": "ranger.goodberry",
+      "name": "Goodberry",
+      "classId": "ranger",
+      "speed": "Quick",
+      "check": "None",
+      "rarity": "Uncommon",
+      "text": "Quick: every ally heals 2. Brings Downed allies back up.",
+      "effects": [
+        {
+          "type": "Heal",
+          "args": {
+            "dice": "2",
+            "target": "party"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Quick: every ally heals 4. Brings Downed allies back up.",
+        "effects": [
+          {
+            "type": "Heal",
+            "args": {
+              "dice": "4",
+              "target": "party"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "ranger.storm_arrow",
+      "name": "Storm Arrow",
+      "classId": "ranger",
+      "speed": "Action",
+      "check": "Attack",
+      "rarity": "Uncommon",
+      "text": "Attack. On hit, 3d8 lightning instead of weapon damage.",
+      "effects": [
+        {
+          "type": "Damage",
+          "when": "onHit",
+          "args": {
+            "dice": "3d8",
+            "type": "lightning"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Attack. On hit, 4d8 lightning instead of weapon damage.",
+        "effects": [
+          {
+            "type": "Damage",
+            "when": "onHit",
+            "args": {
+              "dice": "4d8",
+              "type": "lightning"
+            }
+          }
+        ]
+      },
+      "fx": "bolt"
+    },
+    {
+      "id": "ranger.horde_breaker",
+      "name": "Horde Breaker",
+      "classId": "ranger",
+      "speed": "Quick",
+      "check": "Attack",
+      "rarity": "Uncommon",
+      "text": "Quick attack: weapon damage.",
+      "effects": [
+        {
+          "type": "WeaponDamage",
+          "when": "onHit"
+        }
+      ],
+      "upgrade": {
+        "text": "Quick attack: weapon damage +2.",
+        "effects": [
+          {
+            "type": "WeaponDamage",
+            "when": "onHit",
+            "args": {
+              "bonus": "2"
+            }
+          }
+        ]
+      },
+      "fx": "arrow"
+    },
+    {
+      "id": "ranger.escape_the_horde",
+      "name": "Escape the Horde",
+      "classId": "ranger",
+      "speed": "Reaction",
+      "check": "None",
+      "rarity": "Uncommon",
+      "text": "Reaction: when you are hit, +4 AC against that attack.",
+      "effects": [
+        {
+          "type": "ModifyIncomingRoll",
+          "args": {
+            "targetDelta": "4"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Reaction: when you are hit, +5 AC against that attack and gain 3 Block.",
+        "effects": [
+          {
+            "type": "ModifyIncomingRoll",
+            "args": {
+              "targetDelta": "5"
+            }
+          },
+          {
+            "type": "Block",
+            "args": {
+              "amount": "3",
+              "target": "self"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "ranger.arrow_storm",
+      "name": "Arrow Storm",
+      "classId": "ranger",
+      "speed": "Action",
+      "check": "Save",
+      "rarity": "Rare",
+      "text": "All enemies save vs your spell DC. Fail: 3d8 piercing. Save: half.",
+      "effects": [
+        {
+          "type": "Damage",
+          "when": "onHit",
+          "args": {
+            "dice": "3d8",
+            "type": "piercing",
+            "target": "allEnemies"
+          }
+        },
+        {
+          "type": "Damage",
+          "when": "onMiss",
+          "args": {
+            "dice": "3d8",
+            "type": "piercing",
+            "half": "true",
+            "target": "allEnemies"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "All enemies save vs your spell DC. Fail: 4d8 piercing. Save: half.",
+        "effects": [
+          {
+            "type": "Damage",
+            "when": "onHit",
+            "args": {
+              "dice": "4d8",
+              "type": "piercing",
+              "target": "allEnemies"
+            }
+          },
+          {
+            "type": "Damage",
+            "when": "onMiss",
+            "args": {
+              "dice": "4d8",
+              "type": "piercing",
+              "half": "true",
+              "target": "allEnemies"
+            }
+          }
+        ]
+      },
+      "fx": "arrow"
+    },
+    {
+      "id": "ranger.twin_shot",
+      "name": "Twin Shot",
+      "classId": "ranger",
+      "speed": "Quick",
+      "check": "Attack",
+      "rarity": "Rare",
+      "text": "Quick attack: two arrows, weapon damage twice.",
+      "effects": [
+        {
+          "type": "WeaponDamage",
+          "when": "onHit"
+        },
+        {
+          "type": "WeaponDamage",
+          "when": "onHit"
+        }
+      ],
+      "upgrade": {
+        "text": "Quick attack: two arrows, weapon damage twice, +2 each.",
+        "effects": [
+          {
+            "type": "WeaponDamage",
+            "when": "onHit",
+            "args": {
+              "bonus": "2"
+            }
+          },
+          {
+            "type": "WeaponDamage",
+            "when": "onHit",
+            "args": {
+              "bonus": "2"
+            }
+          }
+        ]
+      },
+      "fx": "arrow"
+    },
+    {
+      "id": "ranger.natural_explorer",
+      "name": "Natural Explorer",
+      "classId": "ranger",
+      "speed": "Quick",
+      "check": "None",
+      "rarity": "Rare",
+      "text": "Draw 2 cards. Gain 3 Block.",
+      "effects": [
+        {
+          "type": "Draw",
+          "args": {
+            "count": "2"
+          }
+        },
+        {
+          "type": "Block",
+          "args": {
+            "amount": "3",
+            "target": "self"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Draw 2 cards. Gain 6 Block.",
+        "effects": [
+          {
+            "type": "Draw",
+            "args": {
+              "count": "2"
+            }
+          },
+          {
+            "type": "Block",
+            "args": {
+              "amount": "6",
+              "target": "self"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "druid.wild_shape_wolf",
+      "name": "Wild Shape: Wolf",
+      "classId": "druid",
+      "speed": "Quick",
+      "check": "None",
+      "rarity": "Common",
+      "text": "Quick: become a Wolf. Gain 5 temp HP; while they last, Strike is a 2d4+2 bite with your spell attack.",
+      "effects": [
+        {
+          "type": "WildShape",
+          "args": {
+            "form": "wolf",
+            "name": "Wolf",
+            "tempHp": "5",
+            "dice": "2d4+2"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Quick: become a Wolf. Gain 8 temp HP; while they last, Strike is a 2d4+3 bite with your spell attack.",
+        "effects": [
+          {
+            "type": "WildShape",
+            "args": {
+              "form": "wolf",
+              "name": "Wolf",
+              "tempHp": "8",
+              "dice": "2d4+3"
+            }
+          }
+        ]
+      },
+      "fx": "bite"
+    },
+    {
+      "id": "druid.entangle",
+      "name": "Entangle",
+      "classId": "druid",
+      "speed": "Action",
+      "check": "Save",
+      "rarity": "Common",
+      "text": "All enemies save vs your spell DC. Fail: Restrained for 1 round.",
+      "effects": [
+        {
+          "type": "Apply",
+          "when": "onHit",
+          "args": {
+            "cond": "Restrained",
+            "rounds": "1",
+            "target": "allEnemies"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "All enemies save vs your spell DC. Fail: Restrained for 2 rounds.",
+        "effects": [
+          {
+            "type": "Apply",
+            "when": "onHit",
+            "args": {
+              "cond": "Restrained",
+              "rounds": "2",
+              "target": "allEnemies"
+            }
+          }
+        ]
+      },
+      "fx": "vine"
+    },
+    {
+      "id": "druid.cure_wounds",
+      "name": "Cure Wounds",
+      "classId": "druid",
+      "speed": "Action",
+      "check": "None",
+      "rarity": "Common",
+      "text": "An ally heals 1d8+3. Brings a Downed ally back up.",
+      "effects": [
+        {
+          "type": "Heal",
+          "args": {
+            "dice": "1d8+3",
+            "target": "target"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "An ally heals 2d8+3. Brings a Downed ally back up.",
+        "effects": [
+          {
+            "type": "Heal",
+            "args": {
+              "dice": "2d8+3",
+              "target": "target"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "druid.thorn_lash",
+      "name": "Thorn Lash",
+      "classId": "druid",
+      "speed": "Quick",
+      "check": "Attack",
+      "rarity": "Uncommon",
+      "text": "Quick spell attack. On hit, 1d6+2 piercing.",
+      "effects": [
+        {
+          "type": "Damage",
+          "when": "onHit",
+          "args": {
+            "dice": "1d6+2",
+            "type": "piercing"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Quick spell attack. On hit, 2d6+2 piercing.",
+        "effects": [
+          {
+            "type": "Damage",
+            "when": "onHit",
+            "args": {
+              "dice": "2d6+2",
+              "type": "piercing"
+            }
+          }
+        ]
+      },
+      "spell": true,
+      "fx": "vine"
+    },
+    {
+      "id": "druid.wild_shape_bear",
+      "name": "Wild Shape: Brown Bear",
+      "classId": "druid",
+      "speed": "Quick",
+      "check": "None",
+      "rarity": "Uncommon",
+      "text": "Quick: become a Brown Bear. Gain 10 temp HP; while they last, Strike is a 2d6+3 maul with your spell attack.",
+      "effects": [
+        {
+          "type": "WildShape",
+          "args": {
+            "form": "bear",
+            "name": "Brown Bear",
+            "tempHp": "10",
+            "dice": "2d6+3"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Quick: become a Brown Bear. Gain 14 temp HP; while they last, Strike is a 2d6+4 maul with your spell attack.",
+        "effects": [
+          {
+            "type": "WildShape",
+            "args": {
+              "form": "bear",
+              "name": "Brown Bear",
+              "tempHp": "14",
+              "dice": "2d6+4"
+            }
+          }
+        ]
+      },
+      "fx": "slash"
+    },
+    {
+      "id": "druid.moonbeam",
+      "name": "Moonbeam",
+      "classId": "druid",
+      "speed": "Action",
+      "check": "Save",
+      "rarity": "Uncommon",
+      "text": "An enemy saves vs your spell DC. Fail: 2d10 radiant. Save: half.",
+      "effects": [
+        {
+          "type": "Damage",
+          "when": "onHit",
+          "args": {
+            "dice": "2d10",
+            "type": "radiant"
+          }
+        },
+        {
+          "type": "Damage",
+          "when": "onMiss",
+          "args": {
+            "dice": "2d10",
+            "type": "radiant",
+            "half": "true"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "An enemy saves vs your spell DC. Fail: 3d10 radiant. Save: half.",
+        "effects": [
+          {
+            "type": "Damage",
+            "when": "onHit",
+            "args": {
+              "dice": "3d10",
+              "type": "radiant"
+            }
+          },
+          {
+            "type": "Damage",
+            "when": "onMiss",
+            "args": {
+              "dice": "3d10",
+              "type": "radiant",
+              "half": "true"
+            }
+          }
+        ]
+      },
+      "fx": "radiant"
+    },
+    {
+      "id": "druid.barkskin",
+      "name": "Barkskin",
+      "classId": "druid",
+      "speed": "Quick",
+      "check": "None",
+      "rarity": "Uncommon",
+      "text": "Quick: an ally's skin turns to bark: 7 temporary HP (they last the fight).",
+      "effects": [
+        {
+          "type": "TempHp",
+          "args": {
+            "amount": "7",
+            "target": "target"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Quick: an ally gains 10 temporary HP (they last the fight).",
+        "effects": [
+          {
+            "type": "TempHp",
+            "args": {
+              "amount": "10",
+              "target": "target"
+            }
+          }
+        ]
+      },
+      "fx": "shield"
+    },
+    {
+      "id": "druid.flaming_sphere",
+      "name": "Flaming Sphere",
+      "classId": "druid",
+      "speed": "Action",
+      "check": "Save",
+      "rarity": "Uncommon",
+      "text": "2 random enemies save vs your spell DC. Fail: 2d6 fire. Save: half.",
+      "effects": [
+        {
+          "type": "Damage",
+          "when": "onHit",
+          "args": {
+            "dice": "2d6",
+            "type": "fire",
+            "target": "random2"
+          }
+        },
+        {
+          "type": "Damage",
+          "when": "onMiss",
+          "args": {
+            "dice": "2d6",
+            "type": "fire",
+            "half": "true",
+            "target": "random2"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "2 random enemies save vs your spell DC. Fail: 3d6 fire. Save: half.",
+        "effects": [
+          {
+            "type": "Damage",
+            "when": "onHit",
+            "args": {
+              "dice": "3d6",
+              "type": "fire",
+              "target": "random2"
+            }
+          },
+          {
+            "type": "Damage",
+            "when": "onMiss",
+            "args": {
+              "dice": "3d6",
+              "type": "fire",
+              "half": "true",
+              "target": "random2"
+            }
+          }
+        ]
+      },
+      "fx": "fire"
+    },
+    {
+      "id": "druid.call_lightning",
+      "name": "Call Lightning",
+      "classId": "druid",
+      "speed": "Action",
+      "check": "Save",
+      "rarity": "Rare",
+      "text": "All enemies save vs your spell DC. Fail: 3d10 lightning. Save: half.",
+      "effects": [
+        {
+          "type": "Damage",
+          "when": "onHit",
+          "args": {
+            "dice": "3d10",
+            "type": "lightning",
+            "target": "allEnemies"
+          }
+        },
+        {
+          "type": "Damage",
+          "when": "onMiss",
+          "args": {
+            "dice": "3d10",
+            "type": "lightning",
+            "half": "true",
+            "target": "allEnemies"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "All enemies save vs your spell DC. Fail: 4d10 lightning. Save: half.",
+        "effects": [
+          {
+            "type": "Damage",
+            "when": "onHit",
+            "args": {
+              "dice": "4d10",
+              "type": "lightning",
+              "target": "allEnemies"
+            }
+          },
+          {
+            "type": "Damage",
+            "when": "onMiss",
+            "args": {
+              "dice": "4d10",
+              "type": "lightning",
+              "half": "true",
+              "target": "allEnemies"
+            }
+          }
+        ]
+      },
+      "fx": "bolt"
+    },
+    {
+      "id": "druid.wild_shape_dire_wolf",
+      "name": "Wild Shape: Dire Wolf",
+      "classId": "druid",
+      "speed": "Quick",
+      "check": "None",
+      "rarity": "Rare",
+      "text": "Quick: become a Dire Wolf. Gain 17 temp HP; while they last, Strike is a 2d6+3 bite with your spell attack. Draw 1.",
+      "effects": [
+        {
+          "type": "WildShape",
+          "args": {
+            "form": "dire_wolf",
+            "name": "Dire Wolf",
+            "tempHp": "17",
+            "dice": "2d6+3"
+          }
+        },
+        {
+          "type": "Draw",
+          "args": {
+            "count": "1"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Quick: become a Dire Wolf. Gain 22 temp HP; Strike is a 2d6+5 bite with your spell attack. Draw 1.",
+        "effects": [
+          {
+            "type": "WildShape",
+            "args": {
+              "form": "dire_wolf",
+              "name": "Dire Wolf",
+              "tempHp": "22",
+              "dice": "2d6+5"
+            }
+          },
+          {
+            "type": "Draw",
+            "args": {
+              "count": "1"
+            }
+          }
+        ]
+      },
+      "fx": "bite"
+    },
+    {
+      "id": "druid.mass_cure_wounds",
+      "name": "Mass Cure Wounds",
+      "classId": "druid",
+      "speed": "Action",
+      "check": "None",
+      "rarity": "Rare",
+      "text": "Every ally heals 2d8. Brings Downed allies back up.",
+      "effects": [
+        {
+          "type": "Heal",
+          "args": {
+            "dice": "2d8",
+            "target": "party"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Every ally heals 3d8. Brings Downed allies back up.",
+        "effects": [
+          {
+            "type": "Heal",
+            "args": {
+              "dice": "3d8",
+              "target": "party"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "paladin.divine_smite",
+      "name": "Divine Smite",
+      "classId": "paladin",
+      "speed": "Quick",
+      "check": "None",
+      "rarity": "Common",
+      "text": "Quick: your next hit this fight deals +2d8 radiant (+1d8 more against undead).",
+      "effects": [
+        {
+          "type": "Smite",
+          "args": {
+            "dice": "2d8",
+            "undead": "1d8"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Quick: your next hit this fight deals +3d8 radiant (+1d8 more against undead).",
+        "effects": [
+          {
+            "type": "Smite",
+            "args": {
+              "dice": "3d8",
+              "undead": "1d8"
+            }
+          }
+        ]
+      },
+      "fx": "radiant"
+    },
+    {
+      "id": "paladin.branding_smite",
+      "name": "Branding Smite",
+      "classId": "paladin",
+      "speed": "Action",
+      "check": "Attack",
+      "rarity": "Common",
+      "text": "Attack. On hit, weapon damage +1d6 radiant.",
+      "effects": [
+        {
+          "type": "WeaponDamage",
+          "when": "onHit"
+        },
+        {
+          "type": "Damage",
+          "when": "onHit",
+          "args": {
+            "dice": "1d6",
+            "type": "radiant"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Attack. On hit, weapon damage +2d6 radiant.",
+        "effects": [
+          {
+            "type": "WeaponDamage",
+            "when": "onHit"
+          },
+          {
+            "type": "Damage",
+            "when": "onHit",
+            "args": {
+              "dice": "2d6",
+              "type": "radiant"
+            }
+          }
+        ]
+      },
+      "fx": "radiant"
+    },
+    {
+      "id": "paladin.sworn_challenge",
+      "name": "Sworn Challenge",
+      "classId": "paladin",
+      "speed": "Quick",
+      "check": "None",
+      "rarity": "Common",
+      "text": "Quick: enemies must attack you for 1 round. Gain 4 Block.",
+      "effects": [
+        {
+          "type": "Apply",
+          "args": {
+            "cond": "Taunting",
+            "rounds": "1",
+            "target": "self"
+          }
+        },
+        {
+          "type": "Block",
+          "args": {
+            "amount": "4",
+            "target": "self"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Quick: enemies must attack you for 1 round. Gain 7 Block.",
+        "effects": [
+          {
+            "type": "Apply",
+            "args": {
+              "cond": "Taunting",
+              "rounds": "1",
+              "target": "self"
+            }
+          },
+          {
+            "type": "Block",
+            "args": {
+              "amount": "7",
+              "target": "self"
+            }
+          }
+        ]
+      },
+      "fx": "shield"
+    },
+    {
+      "id": "paladin.thunder_strike",
+      "name": "Thunder Strike",
+      "classId": "paladin",
+      "speed": "Action",
+      "check": "Attack",
+      "rarity": "Uncommon",
+      "text": "Attack. On hit, weapon damage +2d6 thunder and the target is Prone for 1 round.",
+      "effects": [
+        {
+          "type": "WeaponDamage",
+          "when": "onHit"
+        },
+        {
+          "type": "Damage",
+          "when": "onHit",
+          "args": {
+            "dice": "2d6",
+            "type": "thunder"
+          }
+        },
+        {
+          "type": "Apply",
+          "when": "onHit",
+          "args": {
+            "cond": "Prone",
+            "rounds": "1"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Attack. On hit, weapon damage +3d6 thunder and the target is Prone for 1 round.",
+        "effects": [
+          {
+            "type": "WeaponDamage",
+            "when": "onHit"
+          },
+          {
+            "type": "Damage",
+            "when": "onHit",
+            "args": {
+              "dice": "3d6",
+              "type": "thunder"
+            }
+          },
+          {
+            "type": "Apply",
+            "when": "onHit",
+            "args": {
+              "cond": "Prone",
+              "rounds": "1"
+            }
+          }
+        ]
+      },
+      "fx": "smash"
+    },
+    {
+      "id": "paladin.bless",
+      "name": "Bless",
+      "classId": "paladin",
+      "speed": "Action",
+      "check": "None",
+      "rarity": "Uncommon",
+      "text": "The party is Blessed for 2 rounds (+1d4 to attacks and saves).",
+      "effects": [
+        {
+          "type": "Apply",
+          "args": {
+            "cond": "Blessed",
+            "rounds": "2",
+            "target": "party"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "The party is Blessed for 3 rounds (+1d4 to attacks and saves).",
+        "effects": [
+          {
+            "type": "Apply",
+            "args": {
+              "cond": "Blessed",
+              "rounds": "3",
+              "target": "party"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "paladin.cure_wounds",
+      "name": "Cure Wounds",
+      "classId": "paladin",
+      "speed": "Action",
+      "check": "None",
+      "rarity": "Uncommon",
+      "text": "An ally heals 1d8+2. Brings a Downed ally back up.",
+      "effects": [
+        {
+          "type": "Heal",
+          "args": {
+            "dice": "1d8+2",
+            "target": "target"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "An ally heals 2d8+2. Brings a Downed ally back up.",
+        "effects": [
+          {
+            "type": "Heal",
+            "args": {
+              "dice": "2d8+2",
+              "target": "target"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "paladin.divine_favor",
+      "name": "Divine Favor",
+      "classId": "paladin",
+      "speed": "Action",
+      "check": "Attack",
+      "rarity": "Uncommon",
+      "text": "Attack. On hit, weapon damage +1d6 radiant and the target is Marked for 2 rounds.",
+      "effects": [
+        {
+          "type": "WeaponDamage",
+          "when": "onHit"
+        },
+        {
+          "type": "Damage",
+          "when": "onHit",
+          "args": {
+            "dice": "1d6",
+            "type": "radiant"
+          }
+        },
+        {
+          "type": "Apply",
+          "when": "onHit",
+          "args": {
+            "cond": "Marked",
+            "rounds": "2"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Attack. On hit, weapon damage +2d6 radiant and the target is Marked for 2 rounds.",
+        "effects": [
+          {
+            "type": "WeaponDamage",
+            "when": "onHit"
+          },
+          {
+            "type": "Damage",
+            "when": "onHit",
+            "args": {
+              "dice": "2d6",
+              "type": "radiant"
+            }
+          },
+          {
+            "type": "Apply",
+            "when": "onHit",
+            "args": {
+              "cond": "Marked",
+              "rounds": "2"
+            }
+          }
+        ]
+      },
+      "fx": "radiant"
+    },
+    {
+      "id": "paladin.aura_of_protection",
+      "name": "Aura of Protection",
+      "classId": "paladin",
+      "speed": "Quick",
+      "check": "None",
+      "rarity": "Uncommon",
+      "text": "Quick: every ally gains 3 Block.",
+      "effects": [
+        {
+          "type": "Block",
+          "args": {
+            "amount": "3",
+            "target": "party"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Quick: every ally gains 5 Block.",
+        "effects": [
+          {
+            "type": "Block",
+            "args": {
+              "amount": "5",
+              "target": "party"
+            }
+          }
+        ]
+      },
+      "fx": "shield"
+    },
+    {
+      "id": "paladin.holy_wrath",
+      "name": "Holy Wrath",
+      "classId": "paladin",
+      "speed": "Action",
+      "check": "Attack",
+      "rarity": "Rare",
+      "text": "Attack. On hit, weapon damage +3d10 force.",
+      "effects": [
+        {
+          "type": "WeaponDamage",
+          "when": "onHit"
+        },
+        {
+          "type": "Damage",
+          "when": "onHit",
+          "args": {
+            "dice": "3d10",
+            "type": "force"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Attack. On hit, weapon damage +4d10 force.",
+        "effects": [
+          {
+            "type": "WeaponDamage",
+            "when": "onHit"
+          },
+          {
+            "type": "Damage",
+            "when": "onHit",
+            "args": {
+              "dice": "4d10",
+              "type": "force"
+            }
+          }
+        ]
+      },
+      "fx": "radiant"
+    },
+    {
+      "id": "paladin.sacred_weapon",
+      "name": "Sacred Weapon",
+      "classId": "paladin",
+      "speed": "Quick",
+      "check": "None",
+      "rarity": "Rare",
+      "text": "Draw 1 card. You are Blessed for 3 rounds.",
+      "effects": [
+        {
+          "type": "Draw",
+          "args": {
+            "count": "1"
+          }
+        },
+        {
+          "type": "Apply",
+          "args": {
+            "cond": "Blessed",
+            "rounds": "3",
+            "target": "self"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "Draw 2 cards. You are Blessed for 3 rounds.",
+        "effects": [
+          {
+            "type": "Draw",
+            "args": {
+              "count": "2"
+            }
+          },
+          {
+            "type": "Apply",
+            "args": {
+              "cond": "Blessed",
+              "rounds": "3",
+              "target": "self"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "paladin.radiant_wave",
+      "name": "Radiant Wave",
+      "classId": "paladin",
+      "speed": "Action",
+      "check": "Save",
+      "rarity": "Rare",
+      "text": "All enemies save vs your spell DC. Fail: 3d8 radiant. Save: half.",
+      "effects": [
+        {
+          "type": "Damage",
+          "when": "onHit",
+          "args": {
+            "dice": "3d8",
+            "type": "radiant",
+            "target": "allEnemies"
+          }
+        },
+        {
+          "type": "Damage",
+          "when": "onMiss",
+          "args": {
+            "dice": "3d8",
+            "type": "radiant",
+            "half": "true",
+            "target": "allEnemies"
+          }
+        }
+      ],
+      "upgrade": {
+        "text": "All enemies save vs your spell DC. Fail: 4d8 radiant. Save: half.",
+        "effects": [
+          {
+            "type": "Damage",
+            "when": "onHit",
+            "args": {
+              "dice": "4d8",
+              "type": "radiant",
+              "target": "allEnemies"
+            }
+          },
+          {
+            "type": "Damage",
+            "when": "onMiss",
+            "args": {
+              "dice": "4d8",
+              "type": "radiant",
+              "half": "true",
+              "target": "allEnemies"
             }
           }
         ]

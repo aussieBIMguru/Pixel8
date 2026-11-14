@@ -33,7 +33,7 @@ public class ContentTests
         var db = TestContent.Db;
         Assert.Empty(db.Validate());
         Assert.True(db.Cards.ContainsKey(ContentDb.BasicStrikeId));
-        Assert.Equal(4, db.Heroes.Count);
+        Assert.Equal(8, db.Heroes.Count);   // round 11: Bard, Ranger, Druid, Paladin
         Assert.True(db.Enemies.ContainsKey("goblin"));
     }
 

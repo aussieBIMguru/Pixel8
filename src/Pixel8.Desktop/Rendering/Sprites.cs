@@ -357,6 +357,94 @@ public sealed class SpriteSheet : IDisposable
             "44.44.44",
             "ff....ff",
         }),
+        ("enemy.bandit", new[]
+        {
+            "..5555..",
+            ".555555.",
+            ".5f0f05.",
+            ".588885.",
+            "..4444..",
+            ".464467.",
+            "..4..4..",
+            ".55..55.",
+        }),
+        ("enemy.zombie", new[]
+        {
+            "..3333..",
+            ".333333.",
+            ".303383.",
+            ".333333.",
+            "33.dd.33",
+            "..dddd..",
+            "..d..d..",
+            ".33..33.",
+        }),
+        ("enemy.giant_wolf_spider", new[]
+        {
+            "........",
+            "5.5..5.5",
+            ".5.44.5.",
+            "5.4884.5",
+            ".544445.",
+            "5.4444.5",
+            ".5....5.",
+            "5......5",
+        }),
+        ("enemy.gnoll", new[]
+        {
+            "9......9",
+            "99.999..",
+            ".9909999",
+            ".999990.",
+            "..9449..",
+            ".949949.",
+            "..9..9..",
+            ".44..44.",
+        }),
+        ("enemy.hobgoblin", new[]
+        {
+            "..9999..",
+            ".990990.",
+            ".999999.",
+            "..9889..",
+            ".666666.",
+            "6.6cc6.6",
+            "..6..6..",
+            ".55..55.",
+        }),
+        ("enemy.ghoul", new[]
+        {
+            "..dddd..",
+            ".d0dd0d.",
+            ".dddddd.",
+            "..d88d..",
+            "d.dddd.d",
+            "7dddddd7",
+            "..d..d..",
+            ".dd..dd.",
+        }),
+        ("enemy.owlbear", new[]
+        {
+            "4.4444.4",
+            "44ffff44",
+            "4f0ff0f4",
+            "44faaf44",
+            "44444444",
+            "74444447",
+            "44444444",
+            "44....44",
+        }),
+        ("enemy.young_green_dragon", new[]
+        {
+            "3.....bb",
+            "33...b0b",
+            ".33.bbbb",
+            "..3bbb8.",
+            ".bbbbbb.",
+            "bbbbbbb.",
+            "b.b..b..",
+            "........",
+        }),
         ("i.attack", new[]
         {
             "......7.",
@@ -421,13 +509,14 @@ public sealed class SpriteSheet : IDisposable
 
     public SpriteSheet(GraphicsDevice device)
     {
-        _texture = new Texture2D(device, Size * Defs.Length, Size);
-        var data = new Color[Size * Defs.Length * Size];
-        int stride = Size * Defs.Length;
+        var defs = Defs.Concat(Round11Sprites.Defs).Concat(GearIcons.Defs).Concat(CardIcons.Defs).ToArray();
+        _texture = new Texture2D(device, Size * defs.Length, Size);
+        var data = new Color[Size * defs.Length * Size];
+        int stride = Size * defs.Length;
 
-        for (int i = 0; i < Defs.Length; i++)
+        for (int i = 0; i < defs.Length; i++)
         {
-            var (name, rows) = Defs[i];
+            var (name, rows) = defs[i];
             if (rows.Length != Size || rows.Any(r => r.Length != Size))
                 throw new InvalidOperationException($"Sprite '{name}' must be exactly {Size}x{Size}.");
 

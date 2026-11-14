@@ -1,5 +1,5 @@
 {
-  "_comment": "Map events ('?' tiles). Each option may cost gold/torch, may roll a check (best hero: d20 + atk|dex|spell|none vs dc) and applies 'success' or 'failure' outcomes. Outcome types: gold, luck, torch, xp, heal (fraction), maxHp, damage (dice, target random|party; never downs a hero), item (id), upgradeRandom, addCard, removeCard. Names and text are original.",
+  "_comment": "Map events ('?' tiles). Each option may cost gold/torch, may roll a check (best hero: d20 + atk|dex|spell|none vs dc) and applies 'success' or 'failure' outcomes. Outcome types: gold, luck, torch, xp, heal (fraction), maxHp (may be negative; never downs a hero), damage (dice, target random|party; never downs a hero), item (id), upgradeRandom, addCard (optional rarity), removeCard, fight (kind normal|elite, surprise = heroes have advantage in round 1, optional enemies = exact ids; starts when the event closes). minDepth limits an event to deeper levels. Names and text are original. Round 10 gear outcomes: gear (optional rarity; amount = how many to choose from; optional id), improveGear (best equipped weapon/armor/shield +1, max +2), cursedGear (id).",
   "events": [
     {
       "id": "shrine",
@@ -272,6 +272,460 @@
             {
               "type": "xp",
               "amount": "5"
+            }
+          ]
+        },
+        {
+          "label": "Leave",
+          "text": "Walk on"
+        }
+      ]
+    },
+    {
+      "id": "bandit_toll",
+      "title": "Toll Rope",
+      "minDepth": 1,
+      "text": "A rope is strung across the corridor, hung with little bells. Someone in the dark calls out a price.",
+      "options": [
+        {
+          "label": "Pay the toll",
+          "text": "15 gold, no trouble",
+          "gold": 15,
+          "success": []
+        },
+        {
+          "label": "Creep around",
+          "text": "Dex check DC 12: ambush them",
+          "check": {
+            "mod": "dex",
+            "dc": 12
+          },
+          "success": [
+            {
+              "type": "fight",
+              "kind": "normal",
+              "surprise": true,
+              "enemies": [
+                "bandit",
+                "bandit"
+              ]
+            }
+          ],
+          "failure": [
+            {
+              "type": "fight",
+              "kind": "normal",
+              "enemies": [
+                "bandit",
+                "bandit",
+                "bandit"
+              ]
+            }
+          ]
+        },
+        {
+          "label": "Cut the rope",
+          "text": "Fight your way through",
+          "success": [
+            {
+              "type": "fight",
+              "kind": "normal",
+              "enemies": [
+                "bandit",
+                "bandit",
+                "bandit"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "trapped_chest",
+      "title": "Rusted Strongbox",
+      "minDepth": 1,
+      "text": "A strongbox sits alone on a plinth. A thin wire runs from its lid into a crack in the wall.",
+      "options": [
+        {
+          "label": "Disarm the wire",
+          "text": "Dex check DC 12",
+          "check": {
+            "mod": "dex",
+            "dc": 12
+          },
+          "success": [
+            {
+              "type": "gold",
+              "amount": "30"
+            },
+            {
+              "type": "item",
+              "id": "potion_healing"
+            }
+          ],
+          "failure": [
+            {
+              "type": "damage",
+              "dice": "1d6",
+              "target": "random"
+            }
+          ]
+        },
+        {
+          "label": "Smash it open",
+          "text": "Atk check DC 11, it will be loud",
+          "check": {
+            "mod": "atk",
+            "dc": 11
+          },
+          "success": [
+            {
+              "type": "gold",
+              "amount": "20"
+            }
+          ],
+          "failure": [
+            {
+              "type": "gold",
+              "amount": "10"
+            },
+            {
+              "type": "fight",
+              "kind": "normal"
+            }
+          ]
+        },
+        {
+          "label": "Leave it",
+          "text": "Walk on"
+        }
+      ]
+    },
+    {
+      "id": "cursed_altar",
+      "title": "Weeping Altar",
+      "minDepth": 2,
+      "text": "Red water beads on a black stone altar. Something under it wants to make a trade.",
+      "options": [
+        {
+          "label": "Offer blood",
+          "text": "Every hero -3 max HP, gain a rare card",
+          "success": [
+            {
+              "type": "maxHp",
+              "amount": "-3"
+            },
+            {
+              "type": "addCard",
+              "rarity": "Rare"
+            }
+          ]
+        },
+        {
+          "label": "Topple it",
+          "text": "Atk check DC 14",
+          "check": {
+            "mod": "atk",
+            "dc": 14
+          },
+          "success": [
+            {
+              "type": "luck",
+              "amount": "1"
+            },
+            {
+              "type": "gold",
+              "amount": "25"
+            }
+          ],
+          "failure": [
+            {
+              "type": "fight",
+              "kind": "normal"
+            }
+          ]
+        },
+        {
+          "label": "Leave",
+          "text": "Walk on"
+        }
+      ]
+    },
+    {
+      "id": "captive",
+      "title": "The Prisoner",
+      "minDepth": 2,
+      "text": "A shackled figure begs you quietly. Guards are dozing by a brazier at the far end of the room.",
+      "options": [
+        {
+          "label": "Pick the lock",
+          "text": "Dex check DC 13",
+          "check": {
+            "mod": "dex",
+            "dc": 13
+          },
+          "success": [
+            {
+              "type": "xp",
+              "amount": "20"
+            },
+            {
+              "type": "gold",
+              "amount": "15"
+            }
+          ],
+          "failure": [
+            {
+              "type": "fight",
+              "kind": "normal"
+            }
+          ]
+        },
+        {
+          "label": "Rush the guards",
+          "text": "Elite fight, ambush, the prisoner pays up front",
+          "success": [
+            {
+              "type": "gold",
+              "amount": "30"
+            },
+            {
+              "type": "xp",
+              "amount": "10"
+            },
+            {
+              "type": "fight",
+              "kind": "elite",
+              "surprise": true
+            }
+          ]
+        },
+        {
+          "label": "Leave them",
+          "text": "Not your problem"
+        }
+      ]
+    },
+    {
+      "id": "collapsed_tunnel",
+      "title": "Fallen Ceiling",
+      "minDepth": 2,
+      "text": "The ceiling has come down across the passage. Something glints between the stones.",
+      "options": [
+        {
+          "label": "Dig through",
+          "text": "Costs 3 Torch, careful work",
+          "torch": 3,
+          "success": [
+            {
+              "type": "gold",
+              "amount": "25"
+            }
+          ]
+        },
+        {
+          "label": "Squeeze through",
+          "text": "Dex check DC 13",
+          "check": {
+            "mod": "dex",
+            "dc": 13
+          },
+          "success": [
+            {
+              "type": "gold",
+              "amount": "25"
+            }
+          ],
+          "failure": [
+            {
+              "type": "damage",
+              "dice": "2d6",
+              "target": "random"
+            }
+          ]
+        },
+        {
+          "label": "Turn back",
+          "text": "Leave the glint"
+        }
+      ]
+    },
+    {
+      "id": "fallen_adventurer",
+      "title": "Fallen Adventurer",
+      "text": "A long-dead explorer slumps against the wall, pack still strapped tight. Something under the bones clicks.",
+      "options": [
+        {
+          "label": "Grab the pack",
+          "text": "Gear, but you may spring the trap",
+          "check": {
+            "mod": "dex",
+            "dc": 11
+          },
+          "success": [
+            {
+              "type": "gear"
+            }
+          ],
+          "failure": [
+            {
+              "type": "gear"
+            },
+            {
+              "type": "damage",
+              "dice": "1d6",
+              "target": "random"
+            }
+          ]
+        },
+        {
+          "label": "Search carefully",
+          "text": "Dex check DC 14: gear and a potion",
+          "check": {
+            "mod": "dex",
+            "dc": 14
+          },
+          "success": [
+            {
+              "type": "gear"
+            },
+            {
+              "type": "item",
+              "id": "potion_healing"
+            }
+          ],
+          "failure": [
+            {
+              "type": "damage",
+              "dice": "1d4",
+              "target": "random"
+            }
+          ]
+        },
+        {
+          "label": "Let them rest",
+          "text": "Walk on"
+        }
+      ]
+    },
+    {
+      "id": "smiths_anvil",
+      "title": "Smith's Anvil",
+      "text": "A dwarf-sized anvil glows beside a forge that should be long cold. A gruff voice offers to help, for a price.",
+      "options": [
+        {
+          "label": "Pay the smith",
+          "text": "40 gold: improve a weapon, armor or shield by +1",
+          "gold": 40,
+          "success": [
+            {
+              "type": "improveGear"
+            }
+          ]
+        },
+        {
+          "label": "Work it yourself",
+          "text": "Attack check DC 14: improve it for free",
+          "check": {
+            "mod": "atk",
+            "dc": 14
+          },
+          "success": [
+            {
+              "type": "improveGear"
+            }
+          ],
+          "failure": [
+            {
+              "type": "damage",
+              "dice": "1d4",
+              "target": "random"
+            }
+          ]
+        },
+        {
+          "label": "Leave",
+          "text": "Walk on"
+        }
+      ]
+    },
+    {
+      "id": "cursed_blade",
+      "title": "Whispering Axe",
+      "text": "An axe is buried in an altar of bone. It whispers promises of strength, if you'll only carry it.",
+      "minDepth": 2,
+      "options": [
+        {
+          "label": "Take the axe",
+          "text": "A cursed +2 axe (-4 max HP; only a campfire frees you)",
+          "success": [
+            {
+              "type": "cursedGear",
+              "id": "berserker_axe"
+            }
+          ]
+        },
+        {
+          "label": "Smash the altar",
+          "text": "Attack check DC 13: shards of luck",
+          "check": {
+            "mod": "atk",
+            "dc": 13
+          },
+          "success": [
+            {
+              "type": "luck",
+              "amount": "1"
+            }
+          ],
+          "failure": [
+            {
+              "type": "damage",
+              "dice": "1d6",
+              "target": "random"
+            }
+          ]
+        },
+        {
+          "label": "Leave",
+          "text": "Walk on, ignoring the whispers"
+        }
+      ]
+    },
+    {
+      "id": "armory_rack",
+      "title": "Armory Rack",
+      "text": "A guard post's weapon rack still holds a few pieces. One case is chained shut.",
+      "options": [
+        {
+          "label": "Take something",
+          "text": "Pick 1 of 3 common pieces",
+          "success": [
+            {
+              "type": "gear",
+              "amount": "3",
+              "rarity": "Common"
+            }
+          ]
+        },
+        {
+          "label": "Force the case",
+          "text": "Attack check DC 13: an uncommon piece",
+          "check": {
+            "mod": "atk",
+            "dc": 13
+          },
+          "success": [
+            {
+              "type": "gear",
+              "rarity": "Uncommon"
+            }
+          ],
+          "failure": [
+            {
+              "type": "damage",
+              "dice": "1d4",
+              "target": "random"
             }
           ]
         },

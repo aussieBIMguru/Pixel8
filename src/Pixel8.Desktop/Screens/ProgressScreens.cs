@@ -34,7 +34,7 @@ public sealed class LevelUpScreen : IScreen
     {
         _run = run;
         _onDone = onDone;
-        Sfx.Play("perfect");
+        Sfx.Play("levelup");
     }
 
     public Point ShakeOffset => Point.Zero;
@@ -57,7 +57,7 @@ public sealed class LevelUpScreen : IScreen
             if (input.Pressed(Keys.Escape) || input.RightClick || input.Clicked(BackButton))
             {
                 _picker = null;
-                Sfx.Play("select");
+                Sfx.Play("back");
                 return;
             }
             if (_picker.Update(input) is { } pick)
@@ -142,14 +142,17 @@ public sealed class EventScreen : IScreen
 
     private readonly Run _run;
     private readonly EventDef _event;
-    private readonly Action<string> _onDone;
+    private readonly Action<string, FightRequest?> _onDone;
     private EventResult? _result;
     private DeckPicker? _picker;
+    /// <summary>Round 10: gear from a "gear" outcome, picked after the result is read.</summary>
+    private LootScreen? _loot;
     private string _note = "";
     private Point _pointer;
     private float _time;
 
-    public EventScreen(Run run, EventDef ev, Action<string> onDone)
+    /// <param name="onDone">Called with the closing message and, when an option started a fight, the fight to begin.</param>
+    public EventScreen(Run run, EventDef ev, Action<string, FightRequest?> onDone)
     {
         _run = run;
         _event = ev;
@@ -165,6 +168,12 @@ public sealed class EventScreen : IScreen
     {
         _time += dt;
         _pointer = input.Pointer;
+
+        if (_loot is not null)
+        {
+            _loot.Update(dt, input);
+            return;
+        }
 
         if (_picker is not null)
         {
@@ -190,7 +199,16 @@ public sealed class EventScreen : IScreen
         if (_result is not null)
         {
             if (_time > 0.3f && (input.LeftClick || input.PressedAny(Keys.Space, Keys.Enter, Keys.Escape)))
-                _onDone($"{_event.Title}: {(_result.Lines.Count > 0 ? _result.Lines[^1] : "done.")}".ToUpperInvariant());
+            {
+                string message = $"{_event.Title}: {(_result.Lines.Count > 0 ? _result.Lines[^1] : "done.")}".ToUpperInvariant();
+                if (_result.Loot is { Choices.Count: > 0 } offer)
+                {
+                    var fight = _result.Fight;
+                    _loot = new LootScreen(_run, offer, lootMessage => _onDone($"{message} {lootMessage}", fight));
+                    return;
+                }
+                _onDone(message, _result.Fight);
+            }
             return;
         }
 
@@ -208,6 +226,8 @@ public sealed class EventScreen : IScreen
             _result = _run.ResolveEvent(option);
             _time = 0;
             Sfx.Play(_result.Roll is null ? "confirm" : _result.Success ? "good" : "hurt");
+            if (_result.Lines.Any(l => l.StartsWith("Found:", StringComparison.Ordinal))) Sfx.Play("item");
+            else if (_result.Lines.Any(l => l.Contains(" gold.", StringComparison.Ordinal) && l.StartsWith('+'))) Sfx.Play("coins");
             if (_result.RemoveCard)
                 _picker = new DeckPicker(_run, card => _run.Party.Heroes.Any(h => h.Deck.AllCards.Contains(card) && _run.CanRemoveFrom(h)),
                     "GIVE UP ONE CARD (ESC TO REFUSE)", showUpgrade: false);
@@ -217,6 +237,11 @@ public sealed class EventScreen : IScreen
 
     public void Draw(SpriteBatch b, PixelCanvas c, SpriteSheet s)
     {
+        if (_loot is not null)
+        {
+            _loot.Draw(b, c, s);
+            return;
+        }
         if (_picker is not null)
         {
             _picker.Draw(b, c, s);
@@ -258,6 +283,7 @@ public sealed class EventScreen : IScreen
                 y += 8;
             }
         if ((int)(_time * 2) % 2 == 0)
-            Gui.TextCenter(b, c, "CLICK TO CONTINUE", 128, 132, Palette.DarkGrey);
+            Gui.TextCenter(b, c, _result.Fight is null ? "CLICK TO CONTINUE" : "CLICK TO FIGHT", 128, 132,
+                _result.Fight is null ? Palette.DarkGrey : Palette.Red);
     }
 }

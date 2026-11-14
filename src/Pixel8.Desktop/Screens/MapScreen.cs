@@ -32,7 +32,7 @@ public sealed class MapScreen : IScreen
     private const int WrapChars = 32;
 
     private readonly Run _run;
-    private readonly Action<Tile, CombatKind> _onFight;
+    private readonly Action<Tile, FightRequest> _onFight;
     private readonly Action<Func<Action, IScreen>> _overlay;
     private readonly Action _onQuit;
     private readonly ScreenShake _shake = new();
@@ -51,7 +51,7 @@ public sealed class MapScreen : IScreen
     private string _message = "";
 
     /// <param name="restore">A saved map to resume (Continue); null starts the run's current Depth fresh.</param>
-    public MapScreen(Run run, Action<Tile, CombatKind> onFight, Action<Func<Action, IScreen>> overlay, Action onQuit, MapSave? restore = null)
+    public MapScreen(Run run, Action<Tile, FightRequest> onFight, Action<Func<Action, IScreen>> overlay, Action onQuit, MapSave? restore = null)
     {
         _run = run;
         _onFight = onFight;
@@ -69,10 +69,12 @@ public sealed class MapScreen : IScreen
         _overlay(make);
     }
 
-    private void StartFight(Tile t, CombatKind kind)
+    private void StartFight(Tile t, CombatKind kind) => StartFight(t, new FightRequest(kind));
+
+    private void StartFight(Tile t, FightRequest request)
     {
         _leftMap = true;
-        _onFight(t, kind);
+        _onFight(t, request);
     }
 
     // ------------------------------------------------------------------ save / load
@@ -88,7 +90,7 @@ public sealed class MapScreen : IScreen
             Y = _party.Y,
             PrevX = _previous?.X ?? -1,
             PrevY = _previous?.Y ?? -1,
-            Tiles = _grid.Rooms.Select(t => new TileSave { X = t.X, Y = t.Y, Kind = t.Kind, Visited = t.Visited, Exposed = t.Exposed }).ToList(),
+            Tiles = _grid.Rooms.Select(t => new TileSave { X = t.X, Y = t.Y, Kind = t.Kind, Visited = t.Visited, Exposed = t.Exposed, Mimic = t.Mimic }).ToList(),
             UsedCampfires = _usedCampfires.Select(t => new[] { t.X, t.Y }).ToList(),
             Merchants = _merchants.Select(kv => SaveGame.Merchant(kv.Value, _run.Party, kv.Key.X, kv.Key.Y)).ToList(),
             DepthMerchant = _depthMerchant is null ? null : SaveGame.Merchant(_depthMerchant, _run.Party),
@@ -100,8 +102,7 @@ public sealed class MapScreen : IScreen
     private void Restore(MapSave s)
     {
         _reroll = s.Reroll;
-        _grid = DungeonGenerator.Generate(_run.DungeonSeed(_run.Depth, _reroll),
-            new DungeonParams { Depth = _run.Depth, Merchant = _run.Shop == ShopMode.OnMap });
+        _grid = DungeonGenerator.Generate(_run.DungeonSeed(_run.Depth, _reroll), _run.DungeonParamsFor(_run.Depth));
         foreach (var ts in s.Tiles)
         {
             if (ts.X < 0 || ts.Y < 0 || ts.X >= _grid.Width || ts.Y >= _grid.Height) continue;
@@ -110,6 +111,7 @@ public sealed class MapScreen : IScreen
             t.Kind = ts.Kind;
             t.Visited = ts.Visited;
             t.Exposed = ts.Exposed;
+            t.Mimic = ts.Mimic;
         }
         _party = InGrid(s.X, s.Y) ?? _grid.Entrance;
         _previous = InGrid(s.PrevX, s.PrevY);
@@ -131,8 +133,7 @@ public sealed class MapScreen : IScreen
 
     private void NewDepth()
     {
-        _grid = DungeonGenerator.Generate(_run.DungeonSeed(_run.Depth, _reroll),
-            new DungeonParams { Depth = _run.Depth, Merchant = _run.Shop == ShopMode.OnMap });
+        _grid = DungeonGenerator.Generate(_run.DungeonSeed(_run.Depth, _reroll), _run.DungeonParamsFor(_run.Depth));
         _party = _grid.Entrance;
         _previous = null;
         _run.Party.StartDepth(_grid.Torch);
@@ -144,7 +145,15 @@ public sealed class MapScreen : IScreen
         Save();
     }
 
-    private void RefreshVisibility() => _vis = Visibility.Compute(_grid);
+    private void RefreshVisibility()
+    {
+        _vis = Visibility.Compute(_grid);
+        _run.AtCampfire = _party.Kind == TileKind.Campfire;   // cursed gear can come off here (round 10)
+    }
+
+    /// <summary>How many goal icons (treasure, campfire, merchant, boss) the fog currently shows.</summary>
+    private int VisibleIcons() => _grid.Rooms.Count(t => !t.Visited
+        && Visibility.VisibleKind(t, _vis[t.X, t.Y]) is TileKind.Treasure or TileKind.Campfire or TileKind.Merchant or TileKind.Boss);
 
     public void Update(float dt, Input input)
     {
@@ -159,6 +168,15 @@ public sealed class MapScreen : IScreen
         else if (input.Pressed(Keys.Escape))
         {
             _onQuit();
+        }
+        else if (input.Pressed(Keys.G))
+        {
+            OpenOverlay(back => new GearScreen(_run, back));
+        }
+        else if (input.Pressed(Keys.J))
+        {
+            // Round 11: the Adventurer's Journal.
+            OpenOverlay(back => new JournalScreen(_run.Content, back));
         }
         else if (input.Pressed(Keys.P))
         {
@@ -218,7 +236,12 @@ public sealed class MapScreen : IScreen
 
         bool firstVisit = !_party.Visited;
         _party.Visited = true;
+        int iconsBefore = VisibleIcons();
         RefreshVisibility();
+        Sfx.Play("step", 0.8f, (float)(Random.Shared.NextDouble() * 0.3 - 0.15));
+        // A treasure, campfire, merchant or the boss came into view.
+        if (VisibleIcons() > iconsBefore) Sfx.Play("reveal");
+        if (_run.Party.Torch == 3) Sfx.Play("torch_low");
 
         // Fights you fled from are still there; campfires can be revisited (but only rested at once).
         bool hostile = _party.Kind is TileKind.Encounter or TileKind.Elite or TileKind.Boss;
@@ -233,15 +256,44 @@ public sealed class MapScreen : IScreen
     {
         _message = "";
         var party = _run.Party;
+        if (DebugMode.Enabled)
+        {
+            bool skipEvent = DebugMode.SkipEvents && t.Kind is TileKind.Event or TileKind.Trap;
+            bool skipFight = DebugMode.SkipFights && t.Kind is TileKind.Encounter or TileKind.Elite;
+            if (skipEvent || skipFight)
+            {
+                _message = $"DEBUG: SKIPPED {t.Kind}".ToUpperInvariant();
+                Clear(t);
+                return;
+            }
+        }
         switch (t.Kind)
         {
+            case TileKind.Treasure when t.Mimic:
+                // Round 10: a hidden treasure that bites back. Elite rules (no fleeing); winning pays the mimic's hoard.
+                _shake.Trigger(3, 0.4f);
+                Flash(Palette.Red, 0.4f);
+                Sfx.Play("roar");
+                _message = "THE CHEST HAS TEETH! A MIMIC!";
+                StartFight(t, new FightRequest(CombatKind.Elite, Enemies: new[] { "mimic" }, Mimic: true));
+                break;
             case TileKind.Treasure:
             {
-                int gold = 15 + 5 * _run.Depth + _run.LootRng.Next(11);
-                party.Gold += gold;
+                int gold = _run.OpenTreasure();
                 Flash(Palette.Yellow, 0.5f);
+                Sfx.Play("coins");
                 _message = $"TREASURE! +{gold} GOLD";
                 Clear(t);
+                // Round 10: treasure may hold gear too.
+                if (_run.RollLoot(LootSource.Treasure) is { } loot)
+                {
+                    string goldLine = _message;
+                    OpenOverlay(back => new LootScreen(_run, loot, msg =>
+                    {
+                        _message = $"{goldLine}. {msg}";
+                        back();
+                    }));
+                }
                 break;
             }
             case TileKind.Encounter:
@@ -258,24 +310,19 @@ public sealed class MapScreen : IScreen
                 break;
             case TileKind.Trap:
             {
-                // The quickest hero rolls a DEX save (InitMod + 2 as a stand-in) vs DC 12 + depth.
-                var heroes = party.Heroes.Where(h => h.CanAct).ToList();
-                if (heroes.Count == 0) break;
-                var best = heroes.OrderByDescending(h => h.Class.InitMod).First();
-                int dc = 12 + _run.Depth;
-                var save = D20.Roll(_run.LootRng, best.Class.InitMod + 2, dc);
-                if (save.Success)
+                var trap = _run.SpringTrap();
+                if (trap is null) break;
+                if (trap.Spotted)
                 {
-                    _message = $"TRAP! {best.Name} spots it ({save.Total} vs {dc})".ToUpperInvariant();
+                    Sfx.Play("trap_spot");
+                    _message = $"TRAP! {trap.Spotter.Name} spots it ({trap.Save.Total} vs {trap.Dc})".ToUpperInvariant();
                 }
                 else
                 {
-                    var victim = _run.LootRng.Pick(heroes);
-                    int dmg = DiceExpr.Parse("1d6").Roll(_run.LootRng) + _run.Depth - 1;
-                    victim.Hp = Math.Max(1, victim.Hp - dmg);
                     _shake.Trigger(2, 0.2f);
                     Flash(Palette.Red, 0.3f);
-                    _message = $"TRAP! {victim.Name} takes {dmg} ({save.Total} vs {dc})".ToUpperInvariant();
+                    Sfx.Play("hurt");
+                    _message = $"TRAP! {trap.Victim!.Name} takes {trap.Damage} ({trap.Save.Total} vs {trap.Dc})".ToUpperInvariant();
                 }
                 Clear(t);
                 break;
@@ -291,10 +338,17 @@ public sealed class MapScreen : IScreen
                     break;
                 }
                 _message = ev.Title.ToUpperInvariant();
-                OpenOverlay(back => new EventScreen(_run, ev, msg =>
+                OpenOverlay(back => new EventScreen(_run, ev, (msg, fight) =>
                 {
                     _message = msg;
-                    back();
+                    if (fight is null)
+                    {
+                        back();
+                        return;
+                    }
+                    // The event started a fight on this (now cleared) tile; the map saves when the party gets back.
+                    _shake.Trigger(fight.Kind == CombatKind.Elite ? 3 : 2, 0.3f);
+                    StartFight(t, fight);
                 }));
                 break;
             }
@@ -304,6 +358,7 @@ public sealed class MapScreen : IScreen
                 int torch = _run.Content.Balance.CampfireTorch;
                 party.Torch += torch;
                 Flash(Palette.Orange, 0.5f);
+                Sfx.Play("fire");
                 _message = $"CAMPFIRE: +{torch} TORCH.";
                 Merchant? fireShop = null;
                 if (_run.Shop == ShopMode.AtCampfires)
@@ -339,6 +394,12 @@ public sealed class MapScreen : IScreen
     /// <summary>Called by the game when a fight started from <paramref name="tile"/> ends. Returns true when the run is won.</summary>
     public bool FightResolved(Tile tile, CombatPhase outcome)
     {
+        if (tile.X < 0)
+        {
+            // A debug fight: it isn't on the map, so nothing here changes.
+            _message = $"DEBUG FIGHT: {outcome}".ToUpperInvariant();
+            return false;
+        }
         switch (outcome)
         {
             case CombatPhase.Victory when tile.Kind == TileKind.Boss:
@@ -346,6 +407,7 @@ public sealed class MapScreen : IScreen
                 _run.Depth++;
                 _reroll = 0;
                 NewDepth();
+                Sfx.Play("stairs");
                 Flash(Palette.White, 0.8f);
                 _message = $"THE BOSS FALLS! DOWN TO DEPTH {_run.Depth}.";
                 break;
@@ -360,6 +422,24 @@ public sealed class MapScreen : IScreen
                 break;
         }
         return false;
+    }
+
+    // ------------------------------------------------------------------ debug (round 8)
+
+    /// <summary>A tile that isn't on the map, for fights started from the debug panel.</summary>
+    public static Tile DebugTile() => new(-1, -1) { Kind = TileKind.Empty };
+
+    public bool CanGoDeeper => _run.Depth < Run.FinalDepth;
+
+    /// <summary>Debug: skip to the next Depth (a fresh map), as if the boss had fallen.</summary>
+    public void DebugNextDepth()
+    {
+        if (!CanGoDeeper) return;
+        _run.Depth++;
+        _reroll = 0;
+        NewDepth();
+        Flash(Palette.Pink, 0.6f);
+        _message = $"DEBUG: DOWN TO DEPTH {_run.Depth}.";
     }
 
     /// <summary>P: the most hurt living hero drinks the first healing item in the Bag.</summary>
@@ -381,6 +461,7 @@ public sealed class MapScreen : IScreen
     {
         t.Kind = TileKind.Empty;
         t.Exposed = false;
+        t.Mimic = false;
     }
 
     private void Flash(Color c, float strength)
@@ -535,7 +616,7 @@ public sealed class MapScreen : IScreen
         int fill = next > prev ? (int)Math.Round((barW - 2) * Math.Clamp((party.Xp - prev) / (double)(next - prev), 0, 1)) : 0;
         canvas.Fill(batch, barX + 1, xpY + 2, fill, 1, Palette.Yellow);
 
-        TinyFont.Draw(batch, canvas, _run.Shop == ShopMode.Anytime ? "ARROWS P POT M SHOP R REROLL" : "ARROWS MOVE  P POTION  R REROLL",
+        TinyFont.Draw(batch, canvas, _run.Shop == ShopMode.Anytime ? "G GEAR J BOOK P POT M SHOP" : "G GEAR  J JOURNAL  P POTION",
             x, PixelCanvas.Height - 15, Palette.DarkGrey);
         TinyFont.Draw(batch, canvas, $"F11 FULL  ESC TITLE  SEED {_run.Seed % 100000}", x, PixelCanvas.Height - 8, Palette.DarkGrey);
     }

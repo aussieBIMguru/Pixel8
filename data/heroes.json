@@ -1,5 +1,5 @@
 {
-  "_comment": "MVP classes. Attack/AC follow 5e level 1 (SRD 5.1); HP is about 2x level 1 so a bad round can't drop a hero before they act (balanced 2026-11-13). Basic Strike/Guard are always available and are not in the deck. basicAction: the class's always-available extra (cards.json, classId 'basic'). weaponFx: hit effect for Strike and weapon damage.",
+  "_comment": "MVP classes. Attack/AC follow 5e level 1 (SRD 5.1); HP is about 2x level 1 so a bad round can't drop a hero before they act (balanced 2026-11-13). Basic Strike/Guard are always available and are not in the deck. basicAction: the class's always-available extra (cards.json, classId 'basic'). weaponFx: hit effect for Strike and weapon damage. conSave: CON saving throw modifier (dragon breath). Round 10 gear: str/dex drive weapon and AC maths with gear (ac/attackMod/weapon stay as the no-gear fallback); proficiencies = gear tags the class may use; startingGear is equipped at the start (it reproduces the old ac/attackMod/weapon exactly). Round 11: wisSave = WIS saving throw (Vampire charm); four new classes (Bard, Ranger, Druid, Paladin). Party select picks 3 of 8.",
   "heroes": [
     {
       "id": "fighter",
@@ -19,12 +19,30 @@
         "fighter.shield_wall"
       ],
       "basicAction": "basic.second_wind",
-      "weaponFx": "slash"
+      "weaponFx": "slash",
+      "conSave": 4,
+      "str": 3,
+      "dex": 1,
+      "proficiencies": [
+        "simple",
+        "martial",
+        "cloth",
+        "light-armor",
+        "medium-armor",
+        "heavy-armor",
+        "shield",
+        "offhand"
+      ],
+      "startingGear": [
+        "longsword",
+        "chain_mail"
+      ],
+      "wisSave": 0
     },
     {
       "id": "rogue",
       "name": "Rogue",
-      "hp": 20,
+      "hp": 25,
       "ac": 14,
       "attackMod": 5,
       "weapon": "1d6+3",
@@ -39,7 +57,22 @@
         "rogue.mark"
       ],
       "basicAction": "basic.cunning",
-      "weaponFx": "stab"
+      "weaponFx": "stab",
+      "conSave": 1,
+      "str": 0,
+      "dex": 3,
+      "proficiencies": [
+        "simple",
+        "finesse",
+        "cloth",
+        "light-armor",
+        "offhand"
+      ],
+      "startingGear": [
+        "shortsword",
+        "leather"
+      ],
+      "wisSave": 0
     },
     {
       "id": "wizard",
@@ -59,12 +92,24 @@
         "wizard.shield"
       ],
       "basicAction": "basic.fire_bolt",
-      "weaponFx": "smash"
+      "weaponFx": "smash",
+      "conSave": 1,
+      "str": 0,
+      "dex": 2,
+      "proficiencies": [
+        "wizard-weapon",
+        "cloth",
+        "focus"
+      ],
+      "startingGear": [
+        "quarterstaff"
+      ],
+      "wisSave": 1
     },
     {
       "id": "cleric",
       "name": "Cleric",
-      "hp": 20,
+      "hp": 25,
       "ac": 16,
       "attackMod": 4,
       "weapon": "1d6+2",
@@ -79,7 +124,175 @@
         "cleric.sacred_flame"
       ],
       "basicAction": "basic.spare_the_dying",
-      "weaponFx": "smash"
+      "weaponFx": "smash",
+      "conSave": 2,
+      "str": 2,
+      "dex": 0,
+      "proficiencies": [
+        "simple",
+        "cloth",
+        "light-armor",
+        "medium-armor",
+        "shield",
+        "focus",
+        "holy"
+      ],
+      "startingGear": [
+        "mace",
+        "scale_mail",
+        "shield"
+      ],
+      "wisSave": 5
+    },
+    {
+      "id": "bard",
+      "name": "Bard",
+      "hp": 22,
+      "ac": 13,
+      "attackMod": 4,
+      "weapon": "1d8+2",
+      "initMod": 2,
+      "spellDc": 13,
+      "startingDeck": [
+        "bard.vicious_mockery",
+        "bard.vicious_mockery",
+        "bard.healing_word",
+        "bard.healing_word",
+        "bard.cutting_words",
+        "bard.cutting_words"
+      ],
+      "basicAction": "basic.bardic_inspiration",
+      "weaponFx": "stab",
+      "conSave": 1,
+      "wisSave": 1,
+      "str": 0,
+      "dex": 2,
+      "proficiencies": [
+        "simple",
+        "finesse",
+        "cloth",
+        "light-armor",
+        "instrument"
+      ],
+      "startingGear": [
+        "rapier",
+        "leather",
+        "lute"
+      ]
+    },
+    {
+      "id": "ranger",
+      "name": "Ranger",
+      "hp": 24,
+      "ac": 14,
+      "attackMod": 5,
+      "weapon": "1d8+3",
+      "initMod": 3,
+      "spellDc": 12,
+      "startingDeck": [
+        "ranger.barbed_arrow",
+        "ranger.barbed_arrow",
+        "ranger.snaring_shot",
+        "ranger.snaring_shot",
+        "ranger.colossus_slayer",
+        "ranger.colossus_slayer"
+      ],
+      "basicAction": "basic.hunters_mark",
+      "weaponFx": "arrow",
+      "conSave": 2,
+      "wisSave": 1,
+      "str": 1,
+      "dex": 3,
+      "proficiencies": [
+        "simple",
+        "martial",
+        "ranged",
+        "cloth",
+        "light-armor",
+        "medium-armor",
+        "shield",
+        "offhand"
+      ],
+      "startingGear": [
+        "longbow",
+        "leather"
+      ]
+    },
+    {
+      "id": "druid",
+      "name": "Druid",
+      "hp": 18,
+      "ac": 14,
+      "attackMod": 2,
+      "weapon": "1d6",
+      "initMod": 1,
+      "spellDc": 13,
+      "startingDeck": [
+        "druid.wild_shape_wolf",
+        "druid.wild_shape_wolf",
+        "druid.entangle",
+        "druid.entangle",
+        "druid.cure_wounds",
+        "druid.cure_wounds"
+      ],
+      "basicAction": "basic.produce_flame",
+      "weaponFx": "smash",
+      "conSave": 1,
+      "wisSave": 5,
+      "str": 0,
+      "dex": 1,
+      "proficiencies": [
+        "simple",
+        "cloth",
+        "light-armor",
+        "medium-armor",
+        "shield",
+        "druidic"
+      ],
+      "startingGear": [
+        "quarterstaff",
+        "leather",
+        "shield"
+      ]
+    },
+    {
+      "id": "paladin",
+      "name": "Paladin",
+      "hp": 20,
+      "ac": 18,
+      "attackMod": 5,
+      "weapon": "1d8+3",
+      "initMod": 0,
+      "spellDc": 12,
+      "startingDeck": [
+        "paladin.divine_smite",
+        "paladin.divine_smite",
+        "paladin.branding_smite",
+        "paladin.branding_smite",
+        "paladin.sworn_challenge",
+        "paladin.sworn_challenge"
+      ],
+      "basicAction": "basic.lay_on_hands",
+      "weaponFx": "slash",
+      "conSave": 3,
+      "wisSave": 3,
+      "str": 3,
+      "dex": 0,
+      "proficiencies": [
+        "simple",
+        "martial",
+        "cloth",
+        "light-armor",
+        "medium-armor",
+        "heavy-armor",
+        "shield",
+        "holy"
+      ],
+      "startingGear": [
+        "longsword",
+        "chain_mail",
+        "shield"
+      ]
     }
   ]
 }

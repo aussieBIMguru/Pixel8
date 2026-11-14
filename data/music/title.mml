@@ -1,0 +1,27 @@
+# Pixel8 title theme. MML for the Pixel8 chip synth: see README.md in this folder.
+title: Pixel8
+tempo: 120
+loop: yes
+
+# Bars:  Am F C G | Am F G E | F G Em Am | F G C E7
+A: @1 v11 l8
+A: o5 a4 e a b4 o6 c4 | o6 c o5 b a f a2 | o5 g4 e g o6 c4 e4 | o6 d4. c o5 b4 g4
+A: o5 a4 e a b4 o6 c4 | o6 d c o5 a f o6 c4 o5 a4 | o5 b4 g b o6 d4 c o5 b | o5 b4 g+4 e2
+A: o6 c2 o5 a4 o6 c4 | o6 d2 o5 b4 o6 d4 | o6 e4. d c4 o5 b4 | o5 a2. r4
+A: o6 c4 o5 a o6 c f4 e d | o6 d4 o5 b o6 d g4 f e | o6 e4 g4 c4 e4 | o6 d4 o5 b4 g+4 b4
+
+B: @0 v7 l8 o4
+B: [a >c e c<]2 [f a >c< a]2 [e g >c< g]2 [d g b g]2
+B: [a >c e c<]2 [f a >c< a]2 [d g b g]2 [e g+ b g+]2
+B: [f a >c< a]2 [d g b g]2 [e g b g]2 [a >c e c<]2
+B: [f a >c< a]2 [d g b g]2 [e g >c< g]2 [e g+ b g+]2
+
+T: l8 o2
+T: [a>a<]4 [f>f<]4 [c>c<]4 [g>g<]4
+T: [a>a<]4 [f>f<]4 [g>g<]4 [e>e<]4
+T: [f>f<]4 [g>g<]4 [e>e<]4 [a>a<]4
+T: [f>f<]4 [g>g<]4 [c>c<]4 [e>e<]4
+
+N: v9 l8
+N: [k h s h k k s h]15
+N: k s s s s16 s16 s16 s16 x4
