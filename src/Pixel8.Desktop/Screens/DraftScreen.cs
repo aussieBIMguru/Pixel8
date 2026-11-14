@@ -72,7 +72,7 @@ public sealed class DraftScreen : IScreen
         {
             int gold = _draft.Skip(_run.Party, _run.Content.Balance);
             _message = $"SKIPPED: +{gold} GOLD";
-            Sfx.Play("coin");
+            Sfx.Play("coins");
             _doneTimer = 1.0f;
         }
     }
@@ -87,7 +87,7 @@ public sealed class DraftScreen : IScreen
             var offer = _draft.Offers[i];
             var r = CardRect(i);
             bool hover = r.Contains(_pointer) && _doneTimer < 0;
-            DrawCard(b, c, offer.Card, r, hover, i);
+            DrawCard(b, c, s, offer.Card, r, hover, i);
 
             s.Draw(b, s.Has("hero." + offer.Hero.Class.Id) ? "hero." + offer.Hero.Class.Id : "hero", r.X + 2, r.Bottom + 4);
             TinyFont.Draw(b, c, Gui.Clip("FOR " + offer.Hero.Name.ToUpperInvariant(), 15), r.X + 12, r.Bottom + 6, Palette.LightGrey);
@@ -102,7 +102,7 @@ public sealed class DraftScreen : IScreen
             Gui.Button(b, c, SkipButton, $"S  SKIP: +{_run.Content.Balance.SkipDraftGold} GOLD", SkipButton.Contains(_pointer));
     }
 
-    private static void DrawCard(SpriteBatch b, PixelCanvas c, CardDef card, Rectangle r, bool hover, int index)
+    private static void DrawCard(SpriteBatch b, PixelCanvas c, SpriteSheet s, CardDef card, Rectangle r, bool hover, int index)
     {
         var (fill, accent) = card.Speed switch
         {
@@ -114,6 +114,7 @@ public sealed class DraftScreen : IScreen
         Gui.Panel(b, c, rr, fill, hover ? Palette.Yellow : accent);
 
         TinyFont.Draw(b, c, (index + 1).ToString(), rr.X + 3, rr.Y + 3, Palette.LightGrey);
+        s.Draw(b, CardIcons.For(card), rr.X + 9, rr.Y + 2);
         var rarity = card.Rarity switch
         {
             Rarity.Uncommon => Palette.Blue,

@@ -30,6 +30,15 @@ public static class Gui
         TextCenter(b, c, label, r.Center.X, r.Y + (r.Height - TinyFont.GlyphHeight) / 2, enabled ? Palette.White : Palette.DarkGrey);
     }
 
+    /// <summary>Round 12: a button with an 8×8 icon on the left and its label left-aligned after it.</summary>
+    public static void IconButton(SpriteBatch b, PixelCanvas c, SpriteSheet s, Rectangle r, string icon, string label, bool hover,
+        bool enabled = true, Color? accent = null)
+    {
+        Button(b, c, r, "", hover, enabled, accent);
+        s.Draw(b, icon, r.X + 2, r.Y + (r.Height - SpriteSheet.Size) / 2, enabled ? null : Palette.DarkGrey);
+        TinyFont.Draw(b, c, label, r.X + 12, r.Y + (r.Height - TinyFont.GlyphHeight) / 2, enabled ? Palette.White : Palette.DarkGrey);
+    }
+
     public static void TextCenter(SpriteBatch b, PixelCanvas c, string text, int centerX, int y, Color color, bool shadow = false)
     {
         int x = centerX - TinyFont.Measure(text) / 2;

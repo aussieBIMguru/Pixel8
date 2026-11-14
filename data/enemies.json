@@ -1,5 +1,5 @@
 {
-  "_comment": "Creatures from the 5e SRD 5.1 (CC BY 4.0), stats as published; balance.json enemyHpMultiplier scales HP at spawn. saveMod is the DEX save. Tier 1 = normal, 2 = elite, 3 = boss. minDepth keeps an enemy out of earlier Depths. 'big': true marks a heavy attack (bolt icon) that triggers a timed reaction when it hits. 'fx' on an attack intent picks its hit effect (slash, smash, stab, bite, arrow).",
+  "_comment": "Creatures from the 5e SRD 5.1 (CC BY 4.0), stats as published; balance.json enemyHpMultiplier scales HP at spawn. saveMod is the DEX save. Tier 1 = normal, 2 = elite, 3 = boss. minDepth keeps an enemy out of earlier Depths. 'big': true marks a heavy attack (bolt icon) that triggers a timed reaction when it hits. 'fx' on an attack intent picks its hit effect (slash, smash, stab, bite, arrow). Round 8: bosses: the tier-3 enemy whose minDepth is the Depth (Ogre 1, Owlbear 2, Young Green Dragon 3). Intent extras (game-side): 'extra' dice + 'extraType' on a hit; 'poison'/'poisonRounds' poison the target on a hit; 'area' hits every hero, with 'save' (CON|DEX) vs 'saveDc' for half; 'recharge' 5 = Recharge 5-6; 'damageScale' and the enemy's 'hpScale' scale the published numbers for a party of three (the Giant Wolf Spider's poison bite is modelled as 2 poison for 2 turns). Round 10: the Mimic (SRD 5.1) only appears from treasure that bites back ('random': false keeps it out of random groups). Round 11 (5 Depths): 'type' (undead\u2026) for Smite and cards; 'maxDepth' retires weak normals; 'maxAdds' caps a boss/elite's extra normals; 'regen' (+ 'regenStoppedBy' damage types) heals at the start of its turn; Hydra 'heads' / 'severAt' / 'regrowStoppedBy'; Lich 'summon' (allies at a HP fraction, once). Intents: 'condition' (+ 'conditionRounds', optional 'conditionSave'/'conditionDc') on a hit or a failed save; a non-area intent with 'save' targets one hero with a save instead of an attack roll; 'drain' heals the attacker by the damage dealt; 'perHead' attacks once per head; 'legendary' intents are used as an extra turn at the end of each round. Bosses: Ogre D1, Owlbear D2, Young Green Dragon D3, Hydra D4, Lich D5 (the end). Game-side scaling (hpScale, damageScale, regen, save DCs) keeps published dice for a party of three; the big retune is round 12.",
   "enemies": [
     {
       "id": "kobold",
@@ -25,7 +25,8 @@
           "weight": 1,
           "fx": "arrow"
         }
-      ]
+      ],
+      "maxDepth": 2
     },
     {
       "id": "giant_rat",
@@ -43,7 +44,8 @@
           "damage": "1d4+2",
           "fx": "bite"
         }
-      ]
+      ],
+      "maxDepth": 2
     },
     {
       "id": "goblin",
@@ -75,7 +77,8 @@
           "block": 4,
           "weight": 1
         }
-      ]
+      ],
+      "maxDepth": 3
     },
     {
       "id": "skeleton",
@@ -101,7 +104,9 @@
           "weight": 1,
           "fx": "arrow"
         }
-      ]
+      ],
+      "maxDepth": 4,
+      "type": "undead"
     },
     {
       "id": "wolf",
@@ -119,7 +124,8 @@
           "damage": "2d4+2",
           "fx": "bite"
         }
-      ]
+      ],
+      "maxDepth": 3
     },
     {
       "id": "orc",
@@ -147,7 +153,8 @@
           "fx": "arrow"
         }
       ],
-      "minDepth": 2
+      "minDepth": 2,
+      "maxDepth": 4
     },
     {
       "id": "bugbear",
@@ -173,7 +180,8 @@
           "block": 6,
           "weight": 1
         }
-      ]
+      ],
+      "maxDepth": 4
     },
     {
       "id": "ogre",
@@ -199,6 +207,678 @@
           "damage": "2d6+4",
           "weight": 1,
           "fx": "arrow"
+        }
+      ],
+      "minDepth": 1,
+      "type": "giant"
+    },
+    {
+      "id": "bandit",
+      "name": "Bandit",
+      "hp": 11,
+      "ac": 12,
+      "initMod": 1,
+      "saveMod": 1,
+      "gold": 6,
+      "tier": 1,
+      "intents": [
+        {
+          "name": "Scimitar",
+          "attackBonus": 3,
+          "damage": "1d6+1",
+          "weight": 2,
+          "fx": "slash"
+        },
+        {
+          "name": "Light Crossbow",
+          "attackBonus": 3,
+          "damage": "1d8+1",
+          "weight": 1,
+          "fx": "arrow"
+        }
+      ],
+      "maxDepth": 3
+    },
+    {
+      "id": "zombie",
+      "name": "Zombie",
+      "hp": 22,
+      "ac": 8,
+      "initMod": -2,
+      "saveMod": -2,
+      "gold": 2,
+      "tier": 1,
+      "intents": [
+        {
+          "name": "Slam",
+          "attackBonus": 3,
+          "damage": "1d6+1",
+          "weight": 1,
+          "fx": "smash"
+        }
+      ],
+      "maxDepth": 4,
+      "type": "undead"
+    },
+    {
+      "id": "giant_wolf_spider",
+      "name": "Giant Wolf Spider",
+      "hp": 11,
+      "ac": 13,
+      "initMod": 3,
+      "saveMod": 3,
+      "gold": 3,
+      "tier": 1,
+      "intents": [
+        {
+          "name": "Bite",
+          "attackBonus": 3,
+          "damage": "1d6+1",
+          "weight": 1,
+          "fx": "bite",
+          "poison": 2,
+          "poisonRounds": 2
+        }
+      ],
+      "maxDepth": 3
+    },
+    {
+      "id": "gnoll",
+      "name": "Gnoll",
+      "hp": 22,
+      "ac": 15,
+      "initMod": 1,
+      "saveMod": 1,
+      "gold": 6,
+      "tier": 1,
+      "intents": [
+        {
+          "name": "Spear",
+          "attackBonus": 4,
+          "damage": "1d6+2",
+          "weight": 2,
+          "fx": "stab"
+        },
+        {
+          "name": "Bite",
+          "attackBonus": 4,
+          "damage": "1d4+2",
+          "weight": 1,
+          "fx": "bite"
+        },
+        {
+          "name": "Longbow",
+          "attackBonus": 3,
+          "damage": "1d8+1",
+          "weight": 1,
+          "fx": "arrow"
+        }
+      ],
+      "minDepth": 2,
+      "maxDepth": 4
+    },
+    {
+      "id": "hobgoblin",
+      "name": "Hobgoblin",
+      "hp": 11,
+      "ac": 18,
+      "initMod": 1,
+      "saveMod": 1,
+      "gold": 8,
+      "tier": 1,
+      "intents": [
+        {
+          "name": "Longsword",
+          "attackBonus": 3,
+          "damage": "1d8+1",
+          "weight": 2,
+          "fx": "slash"
+        },
+        {
+          "name": "Longbow",
+          "attackBonus": 3,
+          "damage": "1d8+1",
+          "weight": 1,
+          "fx": "arrow"
+        }
+      ],
+      "minDepth": 2,
+      "maxDepth": 4
+    },
+    {
+      "id": "ghoul",
+      "name": "Ghoul",
+      "hp": 22,
+      "ac": 12,
+      "initMod": 2,
+      "saveMod": 2,
+      "gold": 6,
+      "tier": 1,
+      "intents": [
+        {
+          "name": "Claws",
+          "attackBonus": 4,
+          "damage": "2d4+2",
+          "weight": 2,
+          "fx": "slash"
+        },
+        {
+          "name": "Bite",
+          "attackBonus": 2,
+          "damage": "2d6+2",
+          "weight": 1,
+          "fx": "bite"
+        }
+      ],
+      "minDepth": 2,
+      "maxDepth": 5,
+      "type": "undead"
+    },
+    {
+      "id": "owlbear",
+      "name": "Owlbear",
+      "hp": 59,
+      "ac": 13,
+      "initMod": 1,
+      "saveMod": 1,
+      "gold": 45,
+      "tier": 3,
+      "intents": [
+        {
+          "name": "Claws",
+          "attackBonus": 7,
+          "damage": "2d8+5",
+          "weight": 2,
+          "big": true,
+          "fx": "slash"
+        },
+        {
+          "name": "Beak",
+          "attackBonus": 7,
+          "damage": "1d10+5",
+          "weight": 2,
+          "fx": "bite"
+        }
+      ],
+      "minDepth": 2
+    },
+    {
+      "id": "young_green_dragon",
+      "name": "Young Green Dragon",
+      "hp": 136,
+      "ac": 18,
+      "initMod": 1,
+      "saveMod": 1,
+      "gold": 80,
+      "tier": 3,
+      "intents": [
+        {
+          "name": "Bite",
+          "attackBonus": 7,
+          "damage": "2d10+4",
+          "weight": 2,
+          "fx": "bite",
+          "extra": "2d6",
+          "extraType": "poison"
+        },
+        {
+          "name": "Claw",
+          "attackBonus": 7,
+          "damage": "2d6+4",
+          "weight": 1,
+          "fx": "slash"
+        },
+        {
+          "name": "Poison Breath",
+          "attackBonus": 0,
+          "damage": "12d6",
+          "weight": 3,
+          "big": true,
+          "fx": "poison",
+          "area": true,
+          "save": "CON",
+          "saveDc": 14,
+          "recharge": 5,
+          "damageScale": 0.4
+        }
+      ],
+      "minDepth": 3,
+      "hpScale": 0.6,
+      "type": "dragon"
+    },
+    {
+      "id": "mimic",
+      "name": "Mimic",
+      "hp": 58,
+      "ac": 12,
+      "initMod": 1,
+      "saveMod": 1,
+      "gold": 0,
+      "tier": 2,
+      "hpScale": 0.6,
+      "random": false,
+      "intents": [
+        {
+          "name": "Pseudopod",
+          "attackBonus": 5,
+          "damage": "1d8+3",
+          "weight": 2,
+          "fx": "smash"
+        },
+        {
+          "name": "Bite",
+          "attackBonus": 5,
+          "damage": "1d8+3",
+          "extra": "1d8",
+          "extraType": "acid",
+          "weight": 2,
+          "big": true,
+          "fx": "bite"
+        }
+      ]
+    },
+    {
+      "id": "troll",
+      "name": "Troll",
+      "hp": 84,
+      "ac": 15,
+      "initMod": 1,
+      "saveMod": 1,
+      "gold": 12,
+      "tier": 1,
+      "minDepth": 4,
+      "xp": 8,
+      "type": "giant",
+      "hpScale": 0.4,
+      "regen": 5,
+      "regenStoppedBy": [
+        "fire",
+        "acid"
+      ],
+      "intents": [
+        {
+          "name": "Claws",
+          "attackBonus": 7,
+          "damage": "2d6+4",
+          "weight": 2,
+          "fx": "slash",
+          "damageScale": 0.7
+        },
+        {
+          "name": "Bite",
+          "attackBonus": 7,
+          "damage": "1d6+4",
+          "weight": 1,
+          "fx": "bite",
+          "damageScale": 0.7
+        }
+      ],
+      "maxDepth": 4
+    },
+    {
+      "id": "wight",
+      "name": "Wight",
+      "hp": 45,
+      "ac": 14,
+      "initMod": 2,
+      "saveMod": 2,
+      "gold": 10,
+      "tier": 1,
+      "minDepth": 4,
+      "xp": 8,
+      "type": "undead",
+      "hpScale": 0.7,
+      "intents": [
+        {
+          "name": "Longsword",
+          "attackBonus": 4,
+          "damage": "1d8+2",
+          "weight": 2,
+          "fx": "slash"
+        },
+        {
+          "name": "Life Drain",
+          "attackBonus": 4,
+          "damage": "1d6+2",
+          "weight": 1,
+          "fx": "necrotic",
+          "drain": true
+        },
+        {
+          "name": "Longbow",
+          "attackBonus": 4,
+          "damage": "1d8+2",
+          "weight": 1,
+          "fx": "arrow"
+        }
+      ],
+      "maxDepth": 5
+    },
+    {
+      "id": "gargoyle",
+      "name": "Gargoyle",
+      "hp": 52,
+      "ac": 15,
+      "initMod": 0,
+      "saveMod": 0,
+      "gold": 8,
+      "tier": 1,
+      "minDepth": 4,
+      "xp": 8,
+      "type": "elemental",
+      "hpScale": 0.7,
+      "intents": [
+        {
+          "name": "Claws",
+          "attackBonus": 4,
+          "damage": "1d6+2",
+          "weight": 2,
+          "fx": "slash"
+        },
+        {
+          "name": "Bite",
+          "attackBonus": 4,
+          "damage": "1d6+2",
+          "weight": 1,
+          "fx": "bite"
+        },
+        {
+          "name": "Stone Still",
+          "kind": "Guard",
+          "block": 8,
+          "weight": 1
+        }
+      ],
+      "maxDepth": 4
+    },
+    {
+      "id": "wraith",
+      "name": "Wraith",
+      "hp": 67,
+      "ac": 13,
+      "initMod": 3,
+      "saveMod": 3,
+      "gold": 10,
+      "tier": 1,
+      "minDepth": 5,
+      "xp": 10,
+      "type": "undead",
+      "hpScale": 0.6,
+      "intents": [
+        {
+          "name": "Life Drain",
+          "attackBonus": 6,
+          "damage": "4d8+3",
+          "weight": 3,
+          "fx": "necrotic",
+          "drain": true,
+          "damageScale": 0.5
+        },
+        {
+          "name": "Fade",
+          "kind": "Guard",
+          "block": 6,
+          "weight": 1
+        }
+      ]
+    },
+    {
+      "id": "mummy",
+      "name": "Mummy",
+      "hp": 58,
+      "ac": 11,
+      "initMod": -1,
+      "saveMod": -1,
+      "gold": 12,
+      "tier": 1,
+      "minDepth": 5,
+      "xp": 10,
+      "type": "undead",
+      "hpScale": 0.7,
+      "intents": [
+        {
+          "name": "Rotting Fist",
+          "attackBonus": 5,
+          "damage": "2d6+3",
+          "extra": "3d6",
+          "extraType": "necrotic",
+          "weight": 1,
+          "fx": "smash",
+          "damageScale": 0.6,
+          "poison": 2,
+          "poisonRounds": 3
+        }
+      ]
+    },
+    {
+      "id": "vampire_spawn",
+      "name": "Vampire Spawn",
+      "hp": 82,
+      "ac": 15,
+      "initMod": 3,
+      "saveMod": 3,
+      "gold": 14,
+      "tier": 1,
+      "minDepth": 5,
+      "xp": 10,
+      "type": "undead",
+      "hpScale": 0.5,
+      "regen": 5,
+      "regenStoppedBy": [
+        "radiant"
+      ],
+      "intents": [
+        {
+          "name": "Claws",
+          "attackBonus": 6,
+          "damage": "2d4+3",
+          "weight": 2,
+          "fx": "slash"
+        },
+        {
+          "name": "Bite",
+          "attackBonus": 6,
+          "damage": "1d6+3",
+          "extra": "3d6",
+          "extraType": "necrotic",
+          "weight": 1,
+          "fx": "bite",
+          "drain": true,
+          "damageScale": 0.6
+        }
+      ]
+    },
+    {
+      "id": "basilisk",
+      "name": "Basilisk",
+      "hp": 52,
+      "ac": 15,
+      "initMod": -1,
+      "saveMod": -1,
+      "gold": 30,
+      "tier": 2,
+      "minDepth": 4,
+      "xp": 20,
+      "type": "monstrosity",
+      "hpScale": 1.0,
+      "maxAdds": 2,
+      "intents": [
+        {
+          "name": "Bite",
+          "attackBonus": 5,
+          "damage": "2d6+3",
+          "extra": "2d6",
+          "extraType": "poison",
+          "weight": 2,
+          "big": true,
+          "fx": "bite"
+        },
+        {
+          "name": "Petrifying Gaze",
+          "damage": "0",
+          "weight": 1,
+          "fx": "necrotic",
+          "save": "CON",
+          "saveDc": 12,
+          "condition": "Restrained",
+          "conditionRounds": 2
+        }
+      ],
+      "maxDepth": 4
+    },
+    {
+      "id": "vampire",
+      "name": "Vampire",
+      "hp": 144,
+      "ac": 16,
+      "initMod": 4,
+      "saveMod": 4,
+      "gold": 50,
+      "tier": 2,
+      "minDepth": 5,
+      "xp": 28,
+      "type": "undead",
+      "hpScale": 0.55,
+      "maxAdds": 2,
+      "regen": 8,
+      "regenStoppedBy": [
+        "radiant"
+      ],
+      "intents": [
+        {
+          "name": "Unarmed Strike",
+          "attackBonus": 9,
+          "damage": "1d8+4",
+          "weight": 2,
+          "fx": "smash",
+          "damageScale": 0.8
+        },
+        {
+          "name": "Bite",
+          "attackBonus": 9,
+          "damage": "1d6+4",
+          "extra": "3d6",
+          "extraType": "necrotic",
+          "weight": 2,
+          "big": true,
+          "fx": "bite",
+          "drain": true,
+          "damageScale": 0.6
+        },
+        {
+          "name": "Charm",
+          "damage": "0",
+          "weight": 1,
+          "fx": "necrotic",
+          "save": "WIS",
+          "saveDc": 14,
+          "condition": "Charmed",
+          "conditionRounds": 1
+        }
+      ]
+    },
+    {
+      "id": "hydra",
+      "name": "Hydra",
+      "hp": 172,
+      "ac": 15,
+      "initMod": 1,
+      "saveMod": 1,
+      "gold": 110,
+      "tier": 3,
+      "minDepth": 4,
+      "xp": 45,
+      "type": "monstrosity",
+      "hpScale": 0.6,
+      "maxAdds": 1,
+      "heads": 5,
+      "severAt": 15,
+      "regrowStoppedBy": [
+        "fire"
+      ],
+      "intents": [
+        {
+          "name": "Bites",
+          "attackBonus": 8,
+          "damage": "1d10+5",
+          "weight": 3,
+          "fx": "bite",
+          "perHead": true,
+          "damageScale": 0.45
+        },
+        {
+          "name": "Coil",
+          "kind": "Guard",
+          "block": 10,
+          "weight": 1
+        }
+      ]
+    },
+    {
+      "id": "lich",
+      "name": "Lich",
+      "hp": 135,
+      "ac": 17,
+      "initMod": 3,
+      "saveMod": 3,
+      "gold": 0,
+      "tier": 3,
+      "minDepth": 5,
+      "type": "undead",
+      "hpScale": 1.1,
+      "maxAdds": 0,
+      "summon": {
+        "enemies": [
+          "zombie",
+          "zombie"
+        ],
+        "atHpFraction": 0.5,
+        "text": "THE LICH RAISES THE DEAD!"
+      },
+      "intents": [
+        {
+          "name": "Paralyzing Touch",
+          "attackBonus": 12,
+          "damage": "3d6",
+          "weight": 2,
+          "fx": "frost",
+          "damageScale": 0.7,
+          "condition": "Paralyzed",
+          "conditionRounds": 1,
+          "conditionSave": "CON",
+          "conditionDc": 15
+        },
+        {
+          "name": "Cone of Cold",
+          "damage": "8d8",
+          "weight": 3,
+          "big": true,
+          "fx": "frost",
+          "area": true,
+          "save": "CON",
+          "saveDc": 15,
+          "recharge": 5,
+          "damageScale": 0.4
+        },
+        {
+          "name": "Ray of Frost",
+          "attackBonus": 12,
+          "damage": "2d8",
+          "weight": 3,
+          "fx": "frost",
+          "legendary": true,
+          "damageScale": 0.6
+        },
+        {
+          "name": "Frightening Gaze",
+          "damage": "0",
+          "weight": 1,
+          "fx": "necrotic",
+          "legendary": true,
+          "save": "WIS",
+          "saveDc": 13,
+          "condition": "Charmed",
+          "conditionRounds": 1
         }
       ]
     }

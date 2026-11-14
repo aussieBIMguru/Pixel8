@@ -15,6 +15,29 @@ public static class Cond
     public const string Prone = "Prone";
     /// <summary>Rogue's Cunning: this hero's next attack has advantage (used up by the attack).</summary>
     public const string Cunning = "Cunning";
+    /// <summary>Takes poison damage at the start of each of its turns (amount kept by CombatState).</summary>
+    public const string Poisoned = "Poisoned";
+
+    // Round 11
+    /// <summary>Loses their next turn (Lich's Paralyzing Touch). Attacks against them have advantage.</summary>
+    public const string Paralyzed = "Paralyzed";
+    /// <summary>Loses their next turn (Vampire's charm).</summary>
+    public const string Charmed = "Charmed";
+    /// <summary>Attacks against it have advantage; its own attacks have disadvantage (Basilisk gaze, Ensnaring Strike, Entangle).</summary>
+    public const string Restrained = "Restrained";
+    /// <summary>Faerie Fire / Vicious Mockery: attacks against it have advantage.</summary>
+    public const string Outlined = "Outlined";
+    /// <summary>Hunter's Mark: the Ranger's hits on it deal extra damage. The mark moves when it dies.</summary>
+    public const string Hunted = "Hunted";
+    /// <summary>Holds Bardic Inspiration dice, spent automatically to turn a failed d20 into a success.</summary>
+    public const string Inspired = "Inspired";
+    /// <summary>Divine Smite is primed: the next hit deals extra radiant damage.</summary>
+    public const string Smiting = "Smiting";
+    /// <summary>Wild Shape: a Druid in beast form (temp HP; Strike uses the beast's attack).</summary>
+    public const string Wild = "Wild";
+
+    /// <summary>Conditions that make the bearer lose their turn.</summary>
+    public static bool SkipsTurn(ConditionSet c) => c.Has(Paralyzed) || c.Has(Charmed);
 }
 
 /// <summary>
@@ -84,6 +107,9 @@ public abstract class Combatant
 
     /// <summary>Absorbs damage before HP. Cleared at the start of the bearer's turn and at the end of a fight.</summary>
     public int Block { get; set; }
+
+    /// <summary>Round 11: temporary hit points (Wild Shape). Lost after Block, before HP; gone at the end of a fight.</summary>
+    public int TempHp { get; set; }
 
     public ConditionSet Conditions { get; } = new();
 

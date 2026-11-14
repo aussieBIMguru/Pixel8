@@ -1,0 +1,26 @@
+# Depth 1: torchlit halls. Calm, curious.
+title: Torchlit Halls
+tempo: 96
+loop: yes
+
+# Bars: Am Am Dm Am | F G Am Am | Am Am Dm E | F Dm E Am
+A: @2 v9 l8
+A: o5 e4 a4 g e d4 | o5 c4 d e o4 a2 | o5 f4 e d a4 f4 | o5 e2. r4
+A: o5 c4 a4 g f e4 | o5 d4 b o6 c d4 o5 b4 | o5 c4 e4 a4 g e | o5 a2. r4
+A: o6 c4 o5 b a e4 a4 | o5 g4 e g a2 | o5 f4 a4 o6 d4 c o5 a | o5 g+2 b4 e4
+A: o5 a4 g f c4 f4 | o5 d4 f a d4 f4 | o5 e4 g+4 b4 o6 d4 | o6 c2 o5 a4 r4
+
+B: @0 v5 l4 o4
+B: a >c e c< a >c e c< d f a f a >c e c<
+B: f a >c< a g b >d< b a >c e c< a >c e c<
+B: a >c e c< a >c e c< d f a f e g+ b g+
+B: f a >c< a d f a f e g+ b g+ a >c e c<
+
+T: l4 o2
+T: a >e< a >e< a >e< a >e< d a d a a >e< a >e<
+T: f >c< f >c< g >d< g >d< a >e< a >e< a >e< a >e<
+T: a >e< a >e< a >e< a >e< d a d a e b e b
+T: f >c< f >c< d a d a e b e b a >e< a >e<
+
+N: v6 l8
+N: [k r h r r r h r]16

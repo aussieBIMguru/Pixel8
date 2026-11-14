@@ -87,11 +87,11 @@ public class LuckTests
             c.UseBasic(ContentDb.BasicStrikeId, c.Enemies[0]);
             if (c.Phase != CombatPhase.AwaitingLuck) continue;
 
-            int luck = c.Party.Luck;
+            int luck = c.LuckLeft;
             Assert.False(c.PendingLuck!.Result.Success);
             c.ResolveLuck(true);
 
-            Assert.Equal(luck - 1, c.Party.Luck);
+            Assert.Equal(luck - 1, c.LuckLeft);
             Assert.Equal(CombatPhase.HeroTurn, c.Phase);
             Assert.True(c.Events.OfType<CheckRolled>().Last().IsReroll);
             Assert.False(c.CanUseBasic());
@@ -109,14 +109,15 @@ public class LuckTests
         c.UseBasic(ContentDb.BasicStrikeId, c.Enemies[0]);
         if (c.Phase == CombatPhase.AwaitingLuck)
         {
-            int luck = c.Party.Luck;
+            int luck = c.LuckLeft;
             c.ResolveLuck(false);
-            Assert.Equal(luck, c.Party.Luck);
+            Assert.Equal(luck, c.LuckLeft);
             Assert.Equal(CombatPhase.HeroTurn, c.Phase);
         }
 
         var broke = TestContent.MakeFight(4, new[] { "fighter" }, new[] { "goblin" });
         broke.Party.Luck = 0;
+        broke.FightLuck = 0;
         broke.Enemies[0].Ac = 40;
         broke.Start();
         broke.UseBasic(ContentDb.BasicStrikeId, broke.Enemies[0]);

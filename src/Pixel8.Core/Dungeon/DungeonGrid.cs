@@ -62,6 +62,9 @@ public sealed class Tile
     /// <summary>Revealed from the start of the Depth regardless of fog (Munchkin-style goals).</summary>
     public bool Exposed { get; set; }
 
+    /// <summary>Round 10: a treasure that's really a mimic (never an exposed one). Hidden from the player.</summary>
+    public bool Mimic { get; set; }
+
     /// <summary>Graph distance from the entrance (-1 = unreachable / rock).</summary>
     public int Distance { get; set; } = -1;
 

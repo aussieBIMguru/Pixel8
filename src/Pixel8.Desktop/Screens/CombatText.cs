@@ -25,7 +25,10 @@ public static class CombatText
             ? $"{N(u.Hero)}: {U(u.Item.Name)}"
             : $"{N(u.Hero)}: {U(u.Item.Name)} > {N(u.Target)}",
         LuckSpent l => $"LUCK! REROLL ({l.LuckLeft} LEFT)",
+        Rearmed r => $"{N(r.Hero)} REARMS {r.Cards.Count}",
+        TimingOffered t when t.Intent.Area => $"{U(t.Intent.Name)}! THE PARTY BRACES",
         TimingOffered t => $"BIG ATTACK! {N(t.Defender)} BRACES",
+        IntentRecharged r => $"{N(r.Enemy)}: {U(r.Intent.Name)} IS READY!",
         TimingResolved t => t.Grade switch
         {
             TimingGrade.Perfect => $"{N(t.Defender)} DODGES!",
@@ -33,6 +36,20 @@ public static class CombatText
             TimingGrade.Ok => $"{N(t.Defender)} FLINCHES (-25%)",
             _ => $"{N(t.Defender)} TAKES IT FULL"
         },
+        // Round 11
+        TurnSkipped t => $"{N(t.Actor)} IS {U(t.Condition)}: TURN LOST",
+        InspirationGained i => $"{N(i.Hero)} HAS {i.Dice} INSPIRATION",
+        InspirationUsed i => i.Turned ? $"INSPIRATION +{i.Roll}: NOW IT WORKS!" : $"INSPIRATION +{i.Roll}: NOT ENOUGH",
+        SmitePrimed sp => $"{N(sp.Hero)}'S BLADE GLOWS",
+        Smote sm => sm.Critical ? $"CRITICAL SMITE ON {N(sm.Target)}!" : $"{N(sm.Hero)} SMITES {N(sm.Target)}",
+        WildShapeStarted w => $"{N(w.Hero)} BECOMES A {U(w.Form.Name)}!",
+        WildShapeEnded w => $"{N(w.Hero)} RETURNS TO FORM",
+        TempHpGained t => $"{N(t.Target)} +{t.Amount} TEMP HP",
+        HeadSevered h => $"A HEAD IS SEVERED! {h.HeadsLeft} LEFT",
+        HeadsRegrew h => $"THE HEAD GROWS BACK! {h.Heads} HEADS",
+        RegenTired r => $"{N(r.Enemy)}'S WOUNDS STOP CLOSING",
+        EnemiesSummoned es => es.Text is { Length: > 0 } text ? U(text) : $"{N(es.Summoner)} CALLS FOR HELP!",
+        LegendaryTurn l => $"{N(l.Enemy)} ACTS AGAIN: {U(l.Intent.Name)}",
         _ => null
     };
 

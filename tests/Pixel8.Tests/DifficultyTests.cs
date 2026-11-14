@@ -34,7 +34,7 @@ public class DifficultyTests
         int easyOgre = Encounters.Spawn(db, "ogre", null, easy.Difficulty).MaxHp;
         int normalOgre = Encounters.Spawn(db, "ogre", null, normal.Difficulty).MaxHp;
         int hardOgre = Encounters.Spawn(db, "ogre", null, hard.Difficulty).MaxHp;
-        Assert.True(easyOgre < normalOgre && normalOgre < hardOgre);
+        Assert.True(easyOgre <= normalOgre && normalOgre < hardOgre);   // round 12: Easy enemy HP is x1.0 (was x0.9)
     }
 
     [Fact]

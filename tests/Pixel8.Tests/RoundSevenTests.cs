@@ -180,23 +180,52 @@ public class LevelPaceTests
 
 public class LuckPerFightTests
 {
-    [Fact]
-    public void Only_one_luck_reroll_per_fight()
+    [Theory]
+    [InlineData("easy", 2)]
+    [InlineData("normal", 1)]
+    [InlineData("hard", 0)]
+    public void Each_fight_starts_with_its_difficultys_luck(string difficulty, int expected)
     {
-        Assert.Equal(1, TestContent.Db.Balance.LuckRerollsPerFight);
+        var run = new Run(TestContent.Db, 3, new[] { "fighter" }, difficulty);
+        run.Party.StartDepth(20);
+        Assert.Equal(0, run.Party.Luck);   // run Luck now only comes from events
+        Assert.Equal(expected, run.StartCombat(CombatKind.Normal).FightLuck);
+    }
+
+    [Fact]
+    public void Fight_luck_is_spent_before_run_luck_and_then_it_runs_out()
+    {
         for (ulong seed = 1; seed <= 300; seed++)
         {
             var c = TestContent.MakeFight(seed, new[] { "fighter", "rogue" }, new[] { "ogre" }, CombatKind.Boss);
             c.Enemies[0].Ac = 40;   // only natural 20s hit, so attacks keep failing
+            c.FightLuck = 1;
+            c.Party.Luck = 1;
             c.Start();
             if (c.ActiveHero is null) continue;
             c.UseBasic(ContentDb.BasicStrikeId, c.Enemies[0]);
             if (c.Phase != CombatPhase.AwaitingLuck) continue;
-            c.ResolveLuck(true);
-            Assert.False(c.LuckAvailable);
-            Assert.True(c.Party.Luck > 0);
 
-            // The next failed attack in this fight is not offered a reroll.
+            c.ResolveLuck(true);
+            Assert.Equal(0, c.FightLuck);   // fight Luck first
+            Assert.Equal(1, c.Party.Luck);
+
+            for (int i = 0; i < 200 && c.LuckAvailable && !c.IsOver; i++)
+            {
+                if (c.Phase == CombatPhase.AwaitingLuck) c.ResolveLuck(true);
+                else if (c.Phase == CombatPhase.HeroTurn)
+                {
+                    if (c.CanUseBasic()) c.UseBasic(ContentDb.BasicStrikeId, c.Enemies[0]);
+                    else c.EndTurn();
+                }
+                else if (c.Phase == CombatPhase.AwaitingReaction) c.ResolveReaction(null);
+                else if (c.Phase == CombatPhase.AwaitingTiming) c.ResolveTiming(TimingGrade.Miss);
+            }
+            if (c.IsOver) continue;
+            Assert.Equal(0, c.Party.Luck);
+            Assert.False(c.LuckAvailable);
+
+            // With no Luck left, a failed attack is not offered a reroll.
             if (c.Phase == CombatPhase.HeroTurn) c.EndTurn();
             for (int i = 0; i < 50 && !c.IsOver; i++)
             {

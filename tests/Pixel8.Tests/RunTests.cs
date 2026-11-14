@@ -1,4 +1,5 @@
 using Pixel8.Core.Combat;
+using Pixel8.Core.Heroes;
 using Pixel8.Core.Randomness;
 using Pixel8.Core.Runs;
 
@@ -61,9 +62,15 @@ public class RunTests
     {
         var run = new Run(TestContent.Db, 9, Trio);
         run.Party.StartDepth(20);
+        // Round 12: Depth 1 fights are short enough that the party can finish three without losing a point of HP,
+        // so wound the Wizard (no self-heal in the starting decks) and check the wound is carried from fight to fight.
+        var wizard = run.Party.Heroes.Single(h => h.Class.Id == "wizard");
+        wizard.Hp = wizard.MaxHp / 2;
         for (int i = 0; i < 3 && !run.Party.IsWiped; i++)
         {
+            int before = wizard.Hp;
             var combat = run.StartCombat(CombatKind.Normal);
+            Assert.Equal(before, wizard.Hp);
             var outcome = AutoPlayer.RunToEnd(combat);
             Assert.True(outcome is CombatPhase.Victory or CombatPhase.Defeat);
             if (outcome == CombatPhase.Victory)
@@ -72,6 +79,6 @@ public class RunTests
                 draft.Choose(draft.Offers[0], run.LootRng);
             }
         }
-        Assert.Contains(run.Party.Heroes, h => h.Hp < h.MaxHp || h.IsDead);
+        Assert.True(wizard.IsDead || wizard.Hp < wizard.MaxHp);
     }
 }

@@ -4,7 +4,7 @@
     One place for the version: the assemblies, build\publish.ps1, the installer and the setup file name all read it.
   -->
   <PropertyGroup>
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
     <Product>Pixel8</Product>
     <Authors>Gavin Nicholls</Authors>
     <Company>Gavin Nicholls</Company>

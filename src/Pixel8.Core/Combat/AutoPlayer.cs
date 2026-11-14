@@ -52,6 +52,23 @@ public static class AutoPlayer
         UseQuickExtras(combat, hero);
         if (combat.Phase != CombatPhase.HeroTurn) return;
 
+        // Out of Action cards? Spend the Action to Rearm the best ones from the discard (round 8).
+        // Round 12: only Rearm when it brings back a damaging Action card (Rearm and pure-control cards alternating
+        // forever was a Sim stalemate: Hypnotic Pattern / Entangle every other turn, no damage from anyone).
+        if (!hero.Deck.Hand.Any(c => c.Def.Speed == CardSpeed.Action) && combat.CanRearm(out _))
+        {
+            int limit = combat.RearmLimit(hero);
+            var picks = hero.Deck.Discard
+                .OrderByDescending(c => c.Def.Speed == CardSpeed.Action && Damages(c.Def))
+                .ThenByDescending(c => c.Def.Speed == CardSpeed.Action)
+                .ThenByDescending(c => c.Def.Rarity)
+                .ThenByDescending(c => c.Upgraded)
+                .Take(limit)
+                .ToList();
+            if (picks.Count >= Math.Min(2, limit) && picks.Any(c => c.Def.Speed == CardSpeed.Action && Damages(c.Def)))
+                combat.Rearm(picks);
+        }
+
         bool played = true;
         while (played && combat.Phase == CombatPhase.HeroTurn)
         {
@@ -59,8 +76,10 @@ public static class AutoPlayer
             foreach (var card in hero.Deck.Hand.ToList())
             {
                 if (!combat.CanPlay(card)) continue;
+                // Round 12: once a fight drags on, stop spending the Action on control-only cards and attack instead.
+                if (combat.Round > StallRound && card.Def.Speed == CardSpeed.Action && IsControlOnly(card.Def)) continue;
                 var side = combat.TargetSideFor(card.Def);
-                var target = PickTarget(combat, side);
+                var target = PickTarget(combat, side, card.Def);
                 if (side != TargetSide.None && target is null) continue;
                 combat.PlayCard(card, target);
                 played = true;
@@ -72,7 +91,9 @@ public static class AutoPlayer
         {
             // A class basic that is an Action attack (Fire Bolt) replaces Strike.
             var basic = combat.ClassBasic(hero);
-            bool attackBasic = basic is { Speed: CardSpeed.Action, Check: CheckKind.Attack } && combat.CanUseBasic(basic);
+            // A Druid in Wild Shape strikes with the beast instead.
+            bool attackBasic = basic is { Speed: CardSpeed.Action, Check: CheckKind.Attack } && combat.CanUseBasic(basic)
+                               && combat.FormOf(hero) is null;
             combat.UseBasic(attackBasic ? basic!.Id : ContentDb.BasicStrikeId, WeakestEnemy(combat));
         }
 
@@ -117,6 +138,27 @@ public static class AutoPlayer
                 combat.UseBasic(basic.Id, target);
                 break;
             }
+            // Round 11
+            case "basic.bardic_inspiration":
+            {
+                var target = combat.Heroes.Where(h => h.CanAct && combat.InspirationOf(h) == 0)
+                    .OrderByDescending(h => h.AttackMod).FirstOrDefault();
+                if (target is not null) combat.UseBasic(basic.Id, target);
+                break;
+            }
+            case "basic.hunters_mark":
+            {
+                var target = combat.Enemies.Where(e => e.IsAlive).OrderByDescending(e => e.Hp).FirstOrDefault();
+                if (target is not null) combat.UseBasic(basic.Id, target);
+                break;
+            }
+            case "basic.lay_on_hands":
+            {
+                var target = combat.Heroes.Where(h => h.IsAlive && (h.IsDowned || h.Hp * 2 < h.MaxHp))
+                    .OrderBy(h => h.IsDowned ? -1 : h.Hp).FirstOrDefault();
+                if (target is not null) combat.UseBasic(basic.Id, target);
+                break;
+            }
         }
     }
 
@@ -127,15 +169,38 @@ public static class AutoPlayer
             run.ApplyLevelUp(run.PendingLevelUps[0], Pixel8.Core.Runs.LevelUpChoice.MaxHp);
     }
 
-    private static Combatant? PickTarget(CombatState combat, TargetSide side) => side switch
+    private static Combatant? PickTarget(CombatState combat, TargetSide side, CardDef? card = null)
     {
-        TargetSide.Enemy => WeakestEnemy(combat),
-        TargetSide.Ally => combat.Heroes
-            .Where(h => h.IsAlive && h.Hp < h.MaxHp)
-            .OrderBy(h => (double)h.Hp / h.MaxHp)
-            .FirstOrDefault(),
-        _ => null
-    };
+        // Round 11 buffs (Inspiration, temp HP) go to anyone standing; everything else keeps the old rule (only the hurt).
+        bool heals = card is null || !card.Effects.Any(e => e.Type is "Inspire" or "TempHp");
+        return side switch
+        {
+            TargetSide.Enemy => WeakestEnemy(combat),
+            // Heals and Block go to whoever is hurt (none if nobody is); Inspiration and temp HP to the most hurt standing hero.
+            TargetSide.Ally when heals => combat.Heroes
+                .Where(h => h.IsAlive && h.Hp < h.MaxHp)
+                .OrderBy(h => (double)h.Hp / h.MaxHp)
+                .FirstOrDefault(),
+            TargetSide.Ally => combat.Heroes
+                .Where(h => h.CanAct)
+                .OrderBy(h => (double)h.Hp / h.MaxHp)
+                .FirstOrDefault(),
+            _ => null
+        };
+    }
+
+    /// <summary>Round 12: after this round the AutoPlayer stops playing control-only Action cards.</summary>
+    public const int StallRound = 6;
+
+    private static readonly HashSet<string> DamageEffects = new(StringComparer.OrdinalIgnoreCase)
+        { "Damage", "WeaponDamage", "BonusDamage", "Poison", "Smite" };
+
+    public static bool Damages(CardDef def) => def.Effects.Any(e => DamageEffects.Contains(e.Type));
+
+    /// <summary>Applies conditions (Charmed, Restrained…) but deals no damage, heals or protects nobody.</summary>
+    public static bool IsControlOnly(CardDef def) =>
+        def.Effects.Any(e => e.Type.Equals("Apply", StringComparison.OrdinalIgnoreCase)) && !Damages(def)
+        && !def.Effects.Any(e => e.Type is "Heal" or "Block" or "TempHp" or "Stabilize" or "LayOnHands");
 
     private static Enemy? WeakestEnemy(CombatState combat) =>
         combat.Enemies.Where(e => e.IsAlive).OrderBy(e => e.Hp).FirstOrDefault();

@@ -15,7 +15,11 @@ public sealed record CombatStarted(IReadOnlyList<Combatant> TurnOrder) : GameEve
 public sealed record RoundStarted(int Round) : GameEvent;
 public sealed record TurnStarted(Combatant Actor) : GameEvent;
 public sealed record CardsDrawn(Hero Hero, int Count) : GameEvent;
+/// <summary>Rearm (round 8): the hero spent their Action to take cards back from the discard pile.</summary>
+public sealed record Rearmed(Hero Hero, IReadOnlyList<string> Cards) : GameEvent;
 public sealed record IntentChosen(Enemy Enemy, IntentDef Intent, Hero? Target, CheckOdds? Odds) : GameEvent;
+/// <summary>A "Recharge 5–6" ability is ready again (round 8).</summary>
+public sealed record IntentRecharged(Enemy Enemy, IntentDef Intent) : GameEvent;
 public sealed record CardPlayed(Combatant Actor, CardDef Card, Combatant? Target) : GameEvent;
 /// <summary>
 /// One labelled piece of a roll for the roll strip: "+5 ATK", "+2 BLESS", or a tag with no number ("ADV PRONE", "MARKED 19-20").
@@ -80,7 +84,9 @@ public static class GameEventText
         RoundStarted r => $"--- Round {r.Round} ---",
         TurnStarted t => $"{t.Actor.Name}'s turn ({t.Actor.Hp}/{t.Actor.MaxHp} HP)",
         CardsDrawn d => $"{d.Hero.Name} draws {d.Count}",
-        IntentChosen i => $"{i.Enemy.Name} intends {i.Intent.Name}" + (i.Intent.Big ? " (BIG)" : "") +
+        Rearmed r => $"{r.Hero.Name} rearms: {string.Join(", ", r.Cards)}",
+        IntentRecharged r => $"  {r.Enemy.Name}'s {r.Intent.Name} recharges",
+        IntentChosen i => $"{i.Enemy.Name} intends {i.Intent.Name}" + (i.Intent.Big ? " (BIG)" : "") + (i.Intent.Area ? " (ALL HEROES)" : "") +
                           (i.Target is null ? "" : $" -> {i.Target.Name}") +
                           (i.Odds is { } o ? $" ({o})" : ""),
         CardPlayed p => $"{p.Actor.Name} plays {p.Card.Name}" + (p.Target is null ? "" : $" on {p.Target.Name}"),
@@ -113,3 +119,25 @@ public static class GameEventText
 
     private static string Signed(int v) => v >= 0 ? $"+ {v}" : $"- {-v}";
 }
+
+// ---------------------------------------------------------------------- round 11
+
+/// <summary>A Druid's beast form: sprite id (<c>beast.&lt;Form&gt;</c>), name, attack dice and the temp HP it starts with.</summary>
+public sealed record WildForm(string Form, string Name, DiceExpr Dice, int TempHp);
+
+public sealed record InspirationGained(Hero Hero, int Dice, DiceExpr Die) : GameEvent;
+/// <param name="Turned">The die turned a failed roll into a success (Encore).</param>
+public sealed record InspirationUsed(Hero Hero, int Roll, bool Turned) : GameEvent;
+public sealed record SmitePrimed(Hero Hero) : GameEvent;
+public sealed record Smote(Hero Hero, Combatant Target, bool Critical) : GameEvent;
+public sealed record WildShapeStarted(Hero Hero, WildForm Form) : GameEvent;
+public sealed record WildShapeEnded(Hero Hero, WildForm Form) : GameEvent;
+public sealed record TempHpGained(Combatant Target, int Amount) : GameEvent;
+/// <summary>The actor loses their turn to a condition (Paralyzed, Charmed).</summary>
+public sealed record TurnSkipped(Combatant Actor, string Condition) : GameEvent;
+public sealed record HeadSevered(Enemy Enemy, int HeadsLeft) : GameEvent;
+public sealed record HeadsRegrew(Enemy Enemy, int Heads) : GameEvent;
+/// <summary>Round 12: after <c>regenTiresAfterRound</c>, a regenerating or regrowing enemy stops healing for the rest of the fight.</summary>
+public sealed record RegenTired(Enemy Enemy) : GameEvent;
+public sealed record EnemiesSummoned(Enemy Summoner, IReadOnlyList<Enemy> Summoned, string? Text) : GameEvent;
+public sealed record LegendaryTurn(Enemy Enemy, IntentDef Intent) : GameEvent;

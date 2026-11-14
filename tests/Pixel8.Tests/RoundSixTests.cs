@@ -235,6 +235,7 @@ public class EventTests
     {
         Assert.True(TestContent.Db.Events.Count >= 5);
         var run = MakeRun();
+        run.Depth = Run.FinalDepth;   // some events only appear from Depth 2
         var seen = new HashSet<string>();
         for (int i = 0; i < 300; i++) seen.Add(run.PickEvent()!.Id);
         Assert.Equal(TestContent.Db.Events.Count, seen.Count);

@@ -1,0 +1,26 @@
+# Depth 2: deeper dark. Slower, heavier.
+title: Deeper Dark
+tempo: 88
+loop: yes
+
+# Bars: Dm C Bb A | Dm C Bb A | Gm Dm Bb A | Gm Bb A A
+A: @1 v9 l8
+A: o5 d4 f4 a4 g f | o5 e4. d c4 e4 | o5 d4 f4 b-4 a g | o5 a2 c+4 e4
+A: o5 a4 o6 d4 c o5 a f4 | o5 g4 e g o6 c4 o5 g4 | o5 f4 d f b-4 a4 | o5 a2. r4
+A: o5 g4 b-4 o6 d4 c o5 b- | o5 a4 f a o6 d2 | o6 d4 c o5 b- a4 g4 | o5 a4 c+4 e4 a4
+A: o5 b-4 a g d4 g4 | o5 f4 b-4 o6 d4 f4 | o6 e4 c+4 o5 a4 e4 | o5 e2 c+4 o4 a4
+
+B: @0 v5 l4 o4
+B: d f a f c e g e d f b- f c+ e a e
+B: d f a f c e g e d f b- f c+ e a e
+B: d g b- g d f a f d f b- f c+ e a e
+B: d g b- g d f b- f c+ e a e c+ e a e
+
+T: l4 o2
+T: d a d a >c g c g< b- >f< b- >f< a >e< a >e<
+T: d a d a >c g c g< b- >f< b- >f< a >e< a >e<
+T: g >d< g >d< d a d a b- >f< b- >f< a >e< a >e<
+T: g >d< g >d< b- >f< b- >f< a >e< a >e< a >e< a >e<
+
+N: v6
+N: [k4 h8 r8 s4 h8 r8]16

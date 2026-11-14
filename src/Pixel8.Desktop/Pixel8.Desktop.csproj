@@ -36,6 +36,8 @@
   <!-- Ship the JSON content next to the exe (ContentDb.FindDataDirectory checks the exe folder first). -->
   <ItemGroup>
     <None Include="..\..\data\*.json" Link="data\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <!-- Round 9: music tracks (text, rendered by the chip synth at startup). -->
+    <None Include="..\..\data\music\*.mml" Link="data\music\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
   <!-- Licence files ship next to Pixel8.exe (and in the installer). -->

@@ -52,6 +52,11 @@ public sealed class VfxPlayer
         "shield" => 0.35f,
         "poof" => 0.5f,
         "crit" => 0.28f,
+        "poison" => 0.45f,
+        "frost" => 0.5f,
+        "necrotic" => 0.5f,
+        "song" => 0.55f,
+        "vine" => 0.45f,
         _ => 0.25f
     };
 
@@ -102,6 +107,11 @@ public sealed class VfxPlayer
                 case "shield": Shield(b, c, e.To, t); break;
                 case "poof": Poof(b, c, e.To, t, rnd); break;
                 case "crit": Crit(b, c, e.To, t); break;
+                case "poison": Poison(b, c, e.To, t, rnd); break;
+                case "frost": Frost(b, c, e.To, t, rnd); break;
+                case "necrotic": Necrotic(b, c, e.To, t, rnd); break;
+                case "song": Song(b, c, e.From, e.To, t); break;
+                case "vine": Vine(b, c, e.To, t); break;
             }
         }
     }
@@ -274,6 +284,80 @@ public sealed class VfxPlayer
     }
 
     /// <summary>Little green plus signs drifting up around the target.</summary>
+    /// <summary>Round 11: ice shards bursting out from the target, white → blue → lavender.</summary>
+    private static void Frost(SpriteBatch b, PixelCanvas c, Vector2 at, float t, Random rnd)
+    {
+        t = Math.Clamp(t, 0, 1);
+        if (t < 0.15f) c.Fill(b, (int)at.X - 1, (int)at.Y - 1, 3, 3, Palette.White);
+        for (int i = 0; i < 8; i++)
+        {
+            double angle = i * Math.PI / 4 + rnd.NextDouble() * 0.3;
+            float dist = 2 + t * 8;
+            var col = t < 0.3f ? Palette.White : t < 0.7f ? Palette.Blue : Palette.Lavender;
+            Px(b, c, at.X + (float)Math.Cos(angle) * dist, at.Y + (float)Math.Sin(angle) * dist, col);
+            if (t < 0.5f) Px(b, c, at.X + (float)Math.Cos(angle) * (dist - 1), at.Y + (float)Math.Sin(angle) * (dist - 1), Palette.White);
+        }
+    }
+
+    /// <summary>Round 11: dark motes sucked into the target (life drain, gazes).</summary>
+    private static void Necrotic(SpriteBatch b, PixelCanvas c, Vector2 at, float t, Random rnd)
+    {
+        t = Math.Clamp(t, 0, 1);
+        for (int i = 0; i < 9; i++)
+        {
+            double angle = rnd.NextDouble() * Math.PI * 2;
+            float dist = (1 - t) * (6 + (float)rnd.NextDouble() * 5);
+            var col = i % 3 == 0 ? Palette.DarkGreen : i % 3 == 1 ? Palette.DarkPurple : Palette.Black;
+            Px(b, c, at.X + (float)Math.Cos(angle) * dist, at.Y + (float)Math.Sin(angle) * dist, col);
+        }
+        if (t > 0.8f) c.Fill(b, (int)at.X - 1, (int)at.Y - 1, 3, 3, Palette.DarkPurple);
+    }
+
+    /// <summary>Round 11: two little notes bobbing from the caster to the target (bardic magic).</summary>
+    private static void Song(SpriteBatch b, PixelCanvas c, Vector2 from, Vector2 at, float t)
+    {
+        t = Math.Clamp(t, 0, 1);
+        for (int i = 0; i < 2; i++)
+        {
+            float k = Math.Clamp(t * 1.3f - i * 0.25f, 0, 1);
+            var pos = Vector2.Lerp(from, at, k) + new Vector2(0, -4 - MathF.Sin(k * MathF.PI * 3) * 3);
+            var col = i == 0 ? Palette.Pink : Palette.Yellow;
+            // a note: a head and a stem
+            c.Fill(b, (int)pos.X, (int)pos.Y + 2, 2, 2, col);
+            c.Fill(b, (int)pos.X + 1, (int)pos.Y - 1, 1, 3, col);
+        }
+    }
+
+    /// <summary>Round 11: vines curling up around the target from the ground.</summary>
+    private static void Vine(SpriteBatch b, PixelCanvas c, Vector2 at, float t)
+    {
+        t = Math.Clamp(t, 0, 1);
+        int h = (int)(t * 10);
+        for (int i = 0; i < h; i++)
+        {
+            int sway = (int)Math.Round(Math.Sin(i * 0.9) * 2);
+            Px(b, c, at.X - 4 + sway, at.Y + 5 - i, Palette.Green);
+            Px(b, c, at.X + 4 - sway, at.Y + 5 - i, Palette.DarkGreen);
+            if (i % 3 == 2) Px(b, c, at.X - 3 + sway, at.Y + 5 - i, Palette.Green);
+        }
+    }
+
+    /// <summary>Single-pixel green and purple bubbles that rise and pop (poison ticks, poisoned blades).</summary>
+    private static void Poison(SpriteBatch b, PixelCanvas c, Vector2 at, float t, Random rnd)
+    {
+        for (int i = 0; i < 7; i++)
+        {
+            float x = at.X - 5 + (float)rnd.NextDouble() * 10;
+            float delay = (float)rnd.NextDouble() * 0.4f;
+            float k = (t - delay) / (1 - delay);
+            if (k < 0 || k > 1) continue;
+            float y = at.Y + 3 - k * 9;
+            var col = k > 0.8f ? Palette.DarkGreen : i % 3 == 0 ? Palette.DarkPurple : Palette.Green;
+            Px(b, c, x, y, col);
+            if (k < 0.5f) Px(b, c, x + 1, y, col);
+        }
+    }
+
     private static void Heal(SpriteBatch b, PixelCanvas c, Vector2 at, float t, Random rnd)
     {
         for (int i = 0; i < 5; i++)

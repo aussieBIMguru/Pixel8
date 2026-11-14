@@ -1,0 +1,27 @@
+# Normal and elite fights. Driving.
+title: Steel and Dice
+tempo: 150
+loop: yes
+
+# Bars: Am G F E | Am G F E | Dm Am Dm E | F G E E
+A: @1 v11 l8
+A: o5 a a o6 c o5 a o6 e o5 a o6 d c | o5 b g b o6 d g4 f d | o6 c o5 a o6 c f e4 d c | o5 b4 g+ e b2
+A: o5 a a o6 c o5 a o6 e o5 a o6 d c | o5 b g b o6 d g a g f | o6 a g f e f e d c | o6 e2 o5 b4 g+4
+A: o6 d4 f d a4 f d | o6 c4 e c a4 e c | o6 d e f g a4 g f | o6 e4 d c o5 b4 g+4
+A: o6 c4 o5 a o6 c f4 e d | o6 d4 o5 b o6 d g4 f d | o6 e g+ b g+ e g+ b o7 e | o7 e4 d c o6 b4 g+4
+
+B: @0 v7 l8 o4
+B: [a >e a e<]2 [g >d g d<]2 [f >c f c<]2 [e b >e< b]2
+B: [a >e a e<]2 [g >d g d<]2 [f >c f c<]2 [e b >e< b]2
+B: [d a >d< a]2 [a >e a e<]2 [d a >d< a]2 [e b >e< b]2
+B: [f >c f c<]2 [g >d g d<]2 [e b >e< b]2 [e b >e< b]2
+
+T: l8 o2
+T: [a>a<]4 [g>g<]4 [f>f<]4 [e>e<]4
+T: [a>a<]4 [g>g<]4 [f>f<]4 [e>e<]4
+T: [d>d<]4 [a>a<]4 [d>d<]4 [e>e<]4
+T: [f>f<]4 [g>g<]4 [e>e<]4 [e>e<]4
+
+N: v9 l8
+N: [k h s h k k s h]15
+N: s16 s16 s s s16 s16 s s x4

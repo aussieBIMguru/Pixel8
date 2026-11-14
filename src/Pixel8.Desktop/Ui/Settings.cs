@@ -8,7 +8,12 @@ namespace Pixel8.Desktop.Ui;
 /// </summary>
 public sealed class Settings
 {
+    /// <summary>Before round 9: one on/off switch. Kept so old settings files still load; volumes replace it.</summary>
     public bool Sound { get; set; } = true;
+    /// <summary>Music volume, 0 (off) to 10 (round 9).</summary>
+    public int MusicVolume { get; set; } = 5;
+    /// <summary>Sound effects volume, 0 (off) to 10 (round 9).</summary>
+    public int SfxVolume { get; set; } = 6;
     /// <summary>Timed reactions on big attacks. Off = every big hit is graded Ok (−25%).</summary>
     public bool ReactEvents { get; set; } = true;
     public string Difficulty { get; set; } = "normal";
@@ -24,13 +29,33 @@ public sealed class Settings
         try
         {
             if (File.Exists(FilePath))
-                return JsonSerializer.Deserialize<Settings>(File.ReadAllText(FilePath)) ?? new Settings();
+            {
+                var settings = JsonSerializer.Deserialize<Settings>(File.ReadAllText(FilePath)) ?? new Settings();
+                // A pre-round-9 file with Sound off: start with both volumes off.
+                if (!settings.Sound)
+                {
+                    settings.MusicVolume = settings.SfxVolume = 0;
+                    settings.Sound = true;
+                }
+                settings.MusicVolume = Math.Clamp(settings.MusicVolume, 0, 10);
+                settings.SfxVolume = Math.Clamp(settings.SfxVolume, 0, 10);
+                return settings;
+            }
         }
         catch (Exception)
         {
             // Unreadable settings are not worth crashing over.
         }
         return new Settings();
+    }
+
+    /// <summary>Pushes the volume settings into the audio systems.</summary>
+    public void ApplyAudio()
+    {
+        Pixel8.Desktop.Fx.Sfx.Volume = SfxVolume / 10f;
+        Pixel8.Desktop.Fx.Sfx.Enabled = SfxVolume > 0;
+        Pixel8.Desktop.Fx.Music.Volume = MusicVolume / 10f;
+        Pixel8.Desktop.Fx.Music.Enabled = MusicVolume > 0;
     }
 
     public void Save()

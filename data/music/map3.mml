@@ -1,0 +1,26 @@
+# Depth 3: the dragon's lair. Phrygian, tense.
+title: Dragon's Lair
+tempo: 104
+loop: yes
+
+# Bars: Em F Em F | Em D C B | Am Em F B | C B Em B
+A: @1 v10 l8
+A: o5 e4 g4 f4 e4 | o5 f4 a4 g f e4 | o5 b4 a g f4 e4 | o5 f2. r4
+A: o5 g4 b4 o6 e4 d o5 b | o5 a4 f+ a o6 d4 o5 a4 | o5 g4 e g o6 c4 o5 g4 | o5 f+2 d+4 b4
+A: o6 c4 o5 b a e4 a4 | o5 g4 f e b2 | o5 a4 o6 c4 f4 e c | o5 b2 f+4 d+4
+A: o6 e4 d c o5 g4 o6 c4 | o6 d+4 c o5 b f+4 b4 | o5 e4 g4 b4 o6 e4 | o6 d+2 o5 b2
+
+B: @0 v6 l8 o4
+B: [e g b g]2 [f a >c< a]2 [e g b g]2 [f a >c< a]2
+B: [e g b g]2 [d f+ a f+]2 [e g >c< g]2 [d+ f+ b f+]2
+B: [e a >c< a]2 [e g b g]2 [f a >c< a]2 [d+ f+ b f+]2
+B: [e g >c< g]2 [d+ f+ b f+]2 [e g b g]2 [d+ f+ b f+]2
+
+T: l8 o2
+T: [e>e<]4 [f>f<]4 [e>e<]4 [f>f<]4
+T: [e>e<]4 [d>d<]4 [c>c<]4 [b>b<]4
+T: [a>a<]4 [e>e<]4 [f>f<]4 [b>b<]4
+T: [c>c<]4 [b>b<]4 [e>e<]4 [b>b<]4
+
+N: v7 l8
+N: [k h s h k h s h]16
